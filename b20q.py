@@ -1,9 +1,7 @@
-import asyncio
 import configparser
 import json
 import discord
 
-import format
 import commands
 
 # Configs
@@ -16,36 +14,34 @@ def update_config():
 		config.write(c)
 
 
-# Game status.json
+# Game status
 class b20qGame:
 	def __init__(self, status=None):
-		# Initialize discord.py client
 		self.client = Client20q()
 		self.channel = None
+		self._confirmation_check = None
 
-		# Initialize game status
 		self.status = status
 		if self.status is None:
-			with open('status.json') as status:
-				self.status = json.load(status)
-
-		self._confirmation_check = lambda: True
+			with open('status.json') as _status:
+				self.status = json.load(_status)
 
 	def __enter__(self):
 		return self
 
 	def __exit__(self, type, value, traceback):
+		# Save the game status to the JSON file
 		with open('status.json', 'w+') as status:
 			json.dump(self.status, status)
 
 	def is_moderator(self, user, guild):
 		with open('mods.json') as mods:
-			return user.id in json.load(mods).get(guild.id, [])
+			return user.id in json.load(mods).get(str(guild.id), [])
 
 	async def add_moderator(self, user, guild):
 		with open('mods.json') as mods:
 			modlist = json.load(mods)
-		modlist[guild.id] = modlist.get(guild.id, [])
+		modlist[guild.id] = modlist.get(str(guild.id), [])
 		modlist[guild.id].append(user.id)
 		with open('mods.json', 'w+') as mods:
 			json.dump(modlist, mods)
@@ -53,8 +49,8 @@ class b20qGame:
 	async def remove_moderator(self, user, guild):
 		with open('mods.json') as mods:
 			modlist = json.load(mods)
-		if guild.id in modlist and user.id in modlist[guild.id]:
-			modlist[guild.id].remove(user.id)
+		if str(guild.id) in modlist and user.id in modlist[str(guild.id)]:
+			modlist[str(guild.id)].remove(user.id)
 			with open('mods.json', 'w+') as mods:
 				json.dump(modlist, mods)
 
@@ -81,10 +77,6 @@ class b20qGame:
 	@property
 	def allow_hints(self):
 		return config.getboolean('b20q', 'allowHints')
-
-	@property
-	def allow_vote_end(self):
-		return config.getboolean('b20q', 'allowVoteEnd')
 
 	@property
 	def warn_mod_only_fail(self):
@@ -114,8 +106,8 @@ class b20qGame:
 
 	@property
 	def winner(self):
-		if self.status['guesses'] and self.status['guesses'][-1][0]:
-			return self.client.get_user(self.status['guesses'][-1][1])
+		if self.status['guesses']:
+			return self.client.get_user(next(g[1] for g in self.status['guesses'] if g[0]))
 		else:
 			return None
 
@@ -154,29 +146,12 @@ class b20qGame:
 		self.status['defender'] = None
 
 
-# Command implementation
-async def execute_command(message):
-	_DIRECT_COMMANDS = {
-		'start': commands.start,
-		'end': commands.end,
-		'show': commands.show
-	}
-	if len(message.content.split()) <= 1:
-		return
-	command = message.content.split()[1]
-	if command in _DIRECT_COMMANDS:
-		await _DIRECT_COMMANDS[command](message)
-	# add other commands here
-	else:
-		await game.channel.send(f'Unknown command "{command}".')
-
-
 class Client20q(discord.Client):
 	async def on_message(self, message):
 		if message.content.startswith(game.prefix):
-			print(f'{message.author.id} {message.author}: {message.content}')
+			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
 			game.channel = message.channel
-			await execute_command(message)
+			await commands.execute_command(message)
 
 
 if __name__ == '__main__':

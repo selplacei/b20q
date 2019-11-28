@@ -30,7 +30,7 @@ def apply(
 	if not answers:
 		formatted += '\nNo answers so far.'
 	for i, (correct, answer) in enumerate(answers):
-		formatted += f'\n{"+" if correct else "-"} [{i}] {answer}'
+		formatted += f'\n{"+" if correct else "-"}[{i}] {answer}'
 
 	# Questions/guesses left
 	formatted += '``` ```py\n'
@@ -54,7 +54,7 @@ def apply(
 		formatted += '``` ```diff\n'
 		formatted += 'Guesses:\n'
 		for i, (correct, guesser, guess) in enumerate(guesses):
-			formatted += f'{"+" if correct else "-"} [{i}] {_get_name(guesser)}: {guess}\n'
+			formatted += f'{"+" if correct else "-"}[{i}] {_get_name(guesser)}: {guess}\n'
 		formatted += '```'
 	else:
 		formatted += '``` ```\nNo guesses so far.```'
