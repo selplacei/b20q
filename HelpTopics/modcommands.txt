@@ -1,0 +1,14 @@
+**Mod Commands**
+%prefix% force start [user]
+%prefix% force end [winner]
+%prefix% set defender <user>
+%prefix% sample
+%prefix% update
+%prefix% shutdown
+%prefix% mod <user>
+%prefix% unmod <user>
+
+(all defender commands)
+
+%prefix% config <prefix|maxQuestions|maxGuesses|allowHints> <set|read> [value]
+%prefix% id [guild|(user mention)]

@@ -1,0 +1,16 @@
+`Page 1 of 2:`
+**Defender Commands**
+_%prefix% edit <answer|hint|guess> <index> <result>_
+	Edit an answer, hint, or guess. If editing an answer, _result_ can start with _yes_ or _no_ to edit that.
+_%prefix% delete <answer|hint|guess> <index>_
+	Delete an answer, hint, or guess.
+_%prefix% hint <hint>_
+	Add a hint.
+_%prefix% answer <yes|no> <answer>_
+	Add an answer.
+_%prefix% incorrect [user]_
+	In response to _%prefix% guess_ by _user_, add their guess as false.
+_%prefix% correct [user]_
+	In response to _%prefix% guess_ by _user_, confirm their guess as true and end the game.
+_%prefix% end_
+	End the game prematurely with no winner.
