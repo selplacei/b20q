@@ -1,7 +1,7 @@
 **Mod Commands**
 %prefix% force start [user]
 %prefix% force end [winner]
-%prefix% set defender <user>
+%prefix% defender <user>
 %prefix% sample
 %prefix% update
 %prefix% shutdown

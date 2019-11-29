@@ -1,3 +1,5 @@
+import sys
+import asyncio
 import configparser
 import json
 import discord
@@ -14,17 +16,21 @@ def update_config():
 		config.write(c)
 
 
+class _DiscordUserSerializer(json.JSONEncoder):
+	def default(self, o):
+		if isinstance(o, discord.User) or isinstance(o, discord.Member):
+			return o.id
+		return super().default(o)
+
+
 # Game status
 class b20qGame:
-	def __init__(self, status=None):
-		self.client = Client20q()
+	def __init__(self):
+		self.status = {}
 		self.channel = None
+		self.initialized = False
 		self._confirmation_check = None
-
-		self.status = status
-		if self.status is None:
-			with open('status.json') as _status:
-				self.status = json.load(_status)
+		self.client = Client20q()
 
 	def __enter__(self):
 		return self
@@ -32,7 +38,59 @@ class b20qGame:
 	def __exit__(self, type, value, traceback):
 		# Save the game status to the JSON file
 		with open('status.json', 'w+') as status:
-			json.dump(self.status, status)
+			json.dump(self.status, status, cls=_DiscordUserSerializer)
+
+	async def initialize_status(self):
+		try:
+			self.load_status()
+		except (json.JSONDecodeError, KeyError, ValueError) as e:
+			sys.stderr.write(str(e))
+			sys.stderr.write('\nError while loading status from JSON. The status has been reset.\n')
+			self.reset_status()
+		self.initialized = True
+
+	def load_status(self):
+		with open('status.json') as s:
+			_status = json.load(s)
+		# Convert all user IDs into user objects. If an ID is not found (except in queued guesses), reset the status.
+		self.status = _status.copy()
+		if self.status['defender'] is not None:
+			self.status['defender'] = self.client.get_user(_status['defender'])
+			if self.status['defender'] is None:
+				sys.stderr.write('Couldn\'t find the defender user from the saved ID. Resetting game status.\n')
+				self.reset_status()
+				return
+
+		self.status['guesses'] = []
+		for c, i, g in _status['guesses']:
+			guesser = self.client.get_user(i)
+			if guesser is None:
+				sys.stderr.write(f'Couldn\'t load guess from user ID {i}. Resetting game status.\n')
+				self.reset_status()
+				return
+			self.status['guesses'].append((c, guesser, g))
+
+		self.status['guess_queue'] = {}
+		for i, g in _status['guess_queue']:
+			i = int(i)
+			guesser = self.client.get_user(i)
+			if guesser is None:
+				sys.stderr.write(f'Couldn\'t load queued guess from user ID {i}. Removing the guess.\n')
+			else:
+				self.status[guesser] = g
+		sys.stderr.write('Finished loading game status from JSON.\n')
+
+	def reset_status(self, write_json=True):
+		self.status = {
+			"defender": None,
+			"answers": [],
+			"hints": [],
+			"guesses": [],
+			"guess_queue": {}
+		}
+		if write_json:
+			with open('status.json', 'w+') as s:
+				json.dump(self.status, s)
 
 	def is_moderator(self, user, guild):
 		with open('mods.json') as mods:
@@ -60,7 +118,7 @@ class b20qGame:
 
 	@property
 	def defender(self):
-		return self.client.get_user(self.status['defender'])
+		return self.status['defender']
 
 	@defender.setter
 	def defender(self, id):
@@ -99,15 +157,13 @@ class b20qGame:
 		return self.max_guesses - len(self.status['guesses'])
 
 	async def add_guess(self, correct: bool, user, guess: str):
-		if not correct and (self.guesses_left > 0 or self.answers_left == -1):
-			self.status['answers'].append((correct, user.id, guess))
-		else:
-			await self.end()
+		if self.guesses_left != 0:
+			self.status['guesses'].append((correct, user, guess))
 
 	@property
 	def winner(self):
 		if self.status['guesses']:
-			return self.client.get_user(next(g[1] for g in self.status['guesses'] if g[0]))
+			return self.client.get_user(next((g[1] for g in self.status['guesses'] if g[0]), None))
 		else:
 			return None
 
@@ -128,10 +184,11 @@ class b20qGame:
 
 	async def start(self, defender):
 		self.status = {
-			'defender': defender.id,
+			'defender': defender,
 			'answers': [],
 			'hints': [],
-			'guesses': []
+			'guesses': [],
+			'guess_queue': {}
 		}
 		await self.channel.send(f'**A new Questions game has been started!** '
 								f'The current defender is {self.defender.mention}.\n'
@@ -140,14 +197,18 @@ class b20qGame:
 								f'guesses available.')
 
 	async def end(self):
-		await self.channel.send(f'**The Questions game has been ended by the defender,** {self.defender.mention}. '
-								f'Type `{self.prefix} show` to see the results so far or '
-								f'`{self.prefix} start` to start a new game as the defender.')
 		self.status['defender'] = None
 
 
 class Client20q(discord.Client):
 	async def on_message(self, message):
+		if not game.initialized:
+			try:
+				await asyncio.wait_for(game.initialize_status(), 20.0)
+			except asyncio.TimeoutError:
+				sys.stderr.write(	'Timed out while loading status from JSON. '
+									'The status has been reset for this session, but the file was not overwritten.')
+				game.reset_status(write_json=False)
 		if message.content.startswith(game.prefix):
 			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
 			game.channel = message.channel

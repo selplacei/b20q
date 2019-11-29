@@ -2,5 +2,5 @@
 **Attacker Commands**
 %prefix% guess <guess>
 	Make a guess. The defender has to use _%prefix% <correct|incorrect>_ to add it to the game's status.
-%prefix% undo
-	Retract a guess (can't be used after _%prefix% <correct|incorrect>_ by the defender).
+%prefix% unguess
+	Retract your current guess (can't be used after _%prefix% <correct|incorrect>_ by the defender).
