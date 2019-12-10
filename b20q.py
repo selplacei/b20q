@@ -38,7 +38,9 @@ class b20qGame:
 	def __exit__(self, type, value, traceback):
 		# Save the game status to the JSON file
 		with open('status.json', 'w+') as status:
-			json.dump(self.status, status, cls=_DiscordUserSerializer)
+			_status = self.status
+			_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}  # json doesn't allow custom encoding of dict keys
+			json.dump(_status, status, cls=_DiscordUserSerializer)
 
 	async def initialize_status(self):
 		try:
@@ -71,13 +73,13 @@ class b20qGame:
 			self.status['guesses'].append((c, guesser, g))
 
 		self.status['guess_queue'] = {}
-		for i, g in _status['guess_queue']:
+		for i, g in _status['guess_queue'].items():
 			i = int(i)
 			guesser = self.client.get_user(i)
 			if guesser is None:
 				sys.stderr.write(f'Couldn\'t load queued guess from user ID {i}. Removing the guess.\n')
 			else:
-				self.status[guesser] = g
+				self.status['guess_queue'][guesser] = g
 		sys.stderr.write('Finished loading game status from JSON.\n')
 
 	def reset_status(self, write_json=True):

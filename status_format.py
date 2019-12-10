@@ -4,9 +4,9 @@ from discord import User
 
 def _get_name(user):
 	try:
-		return user.nick or user.display_name
-	except AttributeError:
 		return user.display_name
+	except AttributeError:
+		return user.nick
 
 
 def apply(
@@ -38,7 +38,7 @@ def apply(
 	if max_questions == -1:
 		formatted += 'You have unlimited questions.\n'
 	else:
-		formatted += f'Questions asked: {len(answers)}/{max_questions}\n'
+		formatted += f'Questions answered: {len(answers)}/{max_questions}\n'
 	if max_guesses == -1:
 		formatted += 'You have unlimited guesses.'
 	else:

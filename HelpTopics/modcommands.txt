@@ -3,7 +3,8 @@
 %prefix% force end [winner]
 %prefix% defender <user>
 %prefix% sample
-%prefix% update
+%prefix% save
+%prefix% load
 %prefix% shutdown
 %prefix% mod <user>
 %prefix% unmod <user>

@@ -148,7 +148,7 @@ async def edit(message):
 	result = ' '.join(args[4:])
 	if args[2] == 'answer' and (result.startswith('yes') or result.startswith('no')):
 		try:
-			game.status['answers'][index][0] = result.startswith('yes')
+			game.status['answers'][index] = (result.startswith('yes'), game.status['answers'][index][1])
 			await message.add_reaction('✅')
 		except IndexError:
 			await message.add_reaction('❌')
@@ -157,7 +157,7 @@ async def edit(message):
 			return
 	if args[2] == 'answer':
 		try:
-			game.status['answers'][index][1] = result
+			game.status['answers'][index] = (game.status['answers'][index][0], result)
 			await message.add_reaction('✅')
 		except IndexError:
 			await message.add_reaction('❌')
@@ -287,8 +287,8 @@ async def guess(message):
 @active_only
 @attacker_only
 async def unguess(message):
-	if message.author.id in game.status['guess_queue']:
-		del game.status['guess_queue'][message.author.id]
+	if message.author in game.status['guess_queue']:
+		del game.status['guess_queue'][message.author]
 		await message.add_reaction('✅')
 	else:
 		await message.add_reaction('❌')

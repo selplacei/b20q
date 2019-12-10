@@ -1,6 +1,16 @@
-`Page 2 of 2:`
-**Attacker Commands**
-%prefix% guess <guess>
-	Make a guess. The defender has to use _%prefix% <correct|incorrect>_ to add it to the game's status.
-%prefix% unguess
-	Retract your current guess (can't be used after _%prefix% <correct|incorrect>_ by the defender).
+`Page 2 of 3:`
+**Defender Commands**
+_%prefix% edit <answer|hint> <index> <result>_
+	Edit an answer or hint. If editing an answer, _result_ can start with _yes_ or _no_ to edit that.
+_%prefix% delete <answer|hint> <index>_
+	Delete an answer or hint.
+_%prefix% hint <hint>_
+	Add a hint.
+_%prefix% answer <yes|no> <answer>_
+	Add an answer.
+_%prefix% incorrect [user]_
+	In response to _%prefix% guess_ by _user_, add their guess as false. If only one guess is active, _user_ is optional.
+_%prefix% correct [user]_
+	In response to _%prefix% guess_ by _user_, confirm their guess as true and end the game. If only one guess is active, _user_ is optional.
+_%prefix% end_
+	End the game prematurely with no winner.
