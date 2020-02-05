@@ -1,1 +1,6 @@
-__pycache__ 
+__pycache__
+stats.db
+status.json
+token
+mods.json
+config.cfg

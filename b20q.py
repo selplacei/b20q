@@ -39,7 +39,7 @@ class b20qGame:
 		# Save the game status to the JSON file
 		with open('status.json', 'w+') as status:
 			_status = self.status
-			_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}  # json doesn't allow custom encoding of dict keys
+			_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}
 			json.dump(_status, status, cls=_DiscordUserSerializer)
 
 	async def initialize_status(self):
