@@ -7,12 +7,11 @@ import discord
 
 import commands
 
-# Configs
 config = configparser.ConfigParser()
 config.read('config.cfg')
 
 
-def update_config():
+def update_config_file():
 	with open('config.cfg') as c:
 		config.write(c)
 
@@ -24,7 +23,7 @@ class _DiscordUserSerializer(json.JSONEncoder):
 		return super().default(o)
 
 
-# Game status
+# Game state
 class b20qGame:
 	def __init__(self):
 		self.status = {}
@@ -84,6 +83,14 @@ class b20qGame:
 		sys.stderr.write('Finished loading game status from JSON.\n')
 
 	def reset_status(self, write_json=True):
+		with open('status.json') as s:
+			print(
+				f'Resetting status. '
+				f'Status stored in memory:\n'
+				f'{self.status}\n'
+				f'Previous contents of status.json:\n'
+				f'{s.read()}'
+			)
 		self.status = {
 			"defender": None,
 			"answers": [],
@@ -193,11 +200,13 @@ class b20qGame:
 			'guesses': [],
 			'guess_queue': {}
 		}
-		await self.channel.send(f'**A new Questions game has been started!** '
-								f'The current defender is {self.defender.mention}.\n'
-								f'You have __{"unlimited" if self.max_questions == -1 else self.max_questions}__ '
-								f'questions and __{"unlimited" if self.max_guesses == -1 else self.max_guesses}__ '
-								f'guesses available.')
+		await self.channel.send(
+			f'**A new Questions game has been started!** '
+			f'The current defender is {self.defender.mention}.\n'
+			f'You have __{"unlimited" if self.max_questions == -1 else self.max_questions}__ '
+			f'questions and __{"unlimited" if self.max_guesses == -1 else self.max_guesses}__ '
+			f'guesses available.'
+		)
 
 	async def end(self):
 		self.status['defender'] = None
@@ -209,8 +218,9 @@ class Client20q(discord.Client):
 			try:
 				await asyncio.wait_for(game.initialize_status(), 20.0)
 			except asyncio.TimeoutError:
-				sys.stderr.write(	'Timed out while loading status from JSON. '
-									'The status has been reset for this session, but the file was not overwritten.')
+				sys.stderr.write(
+					'Timed out while loading status from JSON. '
+					'The status has been reset for this session, but the file was not overwritten.')
 				game.reset_status(write_json=False)
 		if message.content.startswith(game.prefix):
 			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
