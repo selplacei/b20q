@@ -146,9 +146,9 @@ async def edit(message):
 		return
 	index = int(args[3])
 	result = ' '.join(args[4:])
-	if args[2] == 'answer' and (result.startswith('yes') or result.startswith('no')):
+	if args[2] == 'answer' and (result.startswith('yes ') or result.startswith('no ')):
 		try:
-			game.status['answers'][index] = (result.startswith('yes'), game.status['answers'][index][1])
+			game.status['answers'][index] = (result.startswith('yes '), game.status['answers'][index][1])
 			await message.add_reaction('✅')
 		except IndexError:
 			await message.add_reaction('❌')
