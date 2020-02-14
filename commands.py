@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 import sys
 import os
+import subprocess
+import threading
+import time
+
 import b20q
 import status_format
 
@@ -27,7 +31,8 @@ async def execute_command(message):
 		'sample': sample,
 		'id': id_,
 		'shutdown': shutdown,
-		'off': shutdown
+		'off': shutdown,
+		'update': update
 	}
 	if len(message.content.split()) <= 1:
 		return
@@ -323,3 +328,18 @@ async def shutdown(message):
 	await message.add_reaction('✅')
 	await game.client.close()
 	sys.exit(0)
+
+
+@mod_only
+async def update(message):
+	await message.add_reaction('✅')
+	def _update():
+		time.sleep(2)
+		subprocess.call('./update.sh')
+		if os.path.exists('./launch.sh'):
+			print('executing launch.sh')
+			os.execl('/bin/sh', '/bin/sh', './launch.sh')
+		else:
+			os.execl('./venv/bin/python', './venv/bin/python', './b20q.py')
+	threading.Thread(target=_update).start()
+	await game.client.close()

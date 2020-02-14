@@ -21,6 +21,7 @@ These instructions assume that you are on a Unix-like system and implementations
 If you already have a bot account and a token ready to go, create a file called "token" and paste the token there.  
 Otherwise, follow the instructions at https://discordpy.readthedocs.io/en/latest/discord.html and do the above.
 
+___
 
 Copyright 2019-2020 Illia Boiko (selplacei) <ilyaviaik@gmail.com>  
 The software in this repository is licensed under the Apache 2.0 license, the terms and conditions of which can be
