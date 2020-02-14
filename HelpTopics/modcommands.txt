@@ -6,6 +6,7 @@
 %prefix% save
 %prefix% load
 %prefix% shutdown
+%prefix% update
 %prefix% mod <user>
 %prefix% unmod <user>
 
