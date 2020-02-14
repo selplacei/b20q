@@ -4,4 +4,4 @@
 git fetch --all
 git reset --hard origin/master
 git pull
-
+chmod +x update.sh
