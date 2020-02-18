@@ -3,7 +3,7 @@
 %prefix% force end [winner]
 %prefix% defender <user>
 %prefix% sample
-%prefix% save
+%prefix% save [filename]  // 'stdout' for normal stdout, 'here' to send to the Discord channel
 %prefix% load
 %prefix% shutdown
 %prefix% update

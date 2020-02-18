@@ -31,6 +31,7 @@ async def execute_command(message):
 
 		'sample': sample,
 		'id': id_,
+		'save': save,
 		'shutdown': shutdown,
 		'off': shutdown,
 		'update': update
@@ -332,6 +333,18 @@ async def id_(message):
 		await game.channel.send(message.guild.id)
 	else:
 		await game.channel.send(message.author.id)
+
+
+@mod_only
+async def save(message):
+	filename = message.content.split()[2] if len(message.content.split()) > 2 else 'status.json'
+	if filename == 'stdout':
+		sys.stdout.write(game.status_as_json())
+	elif filename == 'here':
+		await game.channel.send(game.status_as_json())
+	else:
+		with open(filename, 'w') as file:
+			file.write(game.status_as_json())
 
 
 @mod_only

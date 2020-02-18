@@ -39,10 +39,13 @@ class b20qGame:
 
 	def __exit__(self, type, value, traceback):
 		# Save the game status to the JSON file
-		with open('status.json', 'w+') as status:
-			_status = self.status
-			_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}
-			json.dump(_status, status, cls=_DiscordUserSerializer)
+		with open('status.json', 'w') as status:
+			status.write(self.status_as_json())
+
+	def status_as_json(self):
+		_status = self.status.copy()
+		_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}
+		return json.dumps(_status, cls=_DiscordUserSerializer)
 
 	async def initialize_status(self):
 		try:
