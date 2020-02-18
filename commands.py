@@ -152,7 +152,7 @@ async def edit(message):
 	if (len(args) < 5) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
 		await game.channel.send(f'{message.author.mention} Format: `{game.prefix} edit <answer|hint> <index> <result>`')
 		return
-	index = int(args[3])
+	index = int(args[3]) - 1
 	result = ' '.join(args[4:])
 	if args[2] == 'answer' and (result.startswith('yes ') or result.startswith('no ')):
 		try:
@@ -185,7 +185,7 @@ async def delete(message):
 		await game.channel.send(f'{message.author.mention} Format: `{game.prefix} delete <answer|hint> <index>`')
 		return
 	part = args[2]
-	index = int(args[3])
+	index = int(args[3]) - 1
 	try:
 		del game.status[part + 's'][index]
 		await message.add_reaction('✅')
@@ -345,6 +345,7 @@ async def save(message):
 	else:
 		with open(filename, 'w') as file:
 			file.write(game.status_as_json())
+	await message.add_reaction('✅')
 
 
 @mod_only
