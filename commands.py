@@ -4,6 +4,7 @@ import os
 import subprocess
 import threading
 import time
+from collections import OrderedDict
 
 import b20q
 import status_format
@@ -208,59 +209,64 @@ async def answer(message):
 	else:
 		_answer = ' '.join(message.content.split()[3:])
 		_correct = message.content.split()[2] == 'yes'
-		await game.add_answer(_correct, _answer)
+		game.add_answer(_correct, _answer)
 		await game.channel.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
+
+
+async def _confirm_guess(message):
+	"""
+	Used for correct/incorrect guess confirmations.
+	Returns the user whose guess is being confirmed or None if not found.
+	"""
+	if len(game.status['guess_queue']) == 0:
+		await game.channel.send(f'{message.author.mention} There are no active guesses.')
+		return None
+	elif message.mentions:
+		user = message.mentions[0]
+		if user not in game.status['guess_queue']:
+			await game.channel.send(
+				f'That user hasn\'t made any guesses. '
+				f'Use `{game.prefix} show` to view the guess queue.'
+			)
+			return None
+		else:
+			return user
+	elif len(game.status['guess_queue']) == 1:
+		return list(game.status['guess_queue'].items())[0][0]
+	else:
+		await game.channel.send(
+			f'{message.author.mention} There are multiple guesses active. '
+			f'Please choose a user and try again.'
+		)
+		return None
 
 
 @active_only
 @defender_only
 async def correct(message):
-	if len(game.status['guess_queue']) == 0:
-		await game.channel.send(f'{message.author.mention} There aren\'t any active guesses.')
+	user = await _confirm_guess(message)
+	if user is None:
 		return
-	elif len(game.status['guess_queue']) == 1:
-		user = list(game.status['guess_queue'].keys())[0]
-	elif len(message.content.split()) < 3:
-		await game.channel.send(f'{message.author.mention} There are multiple guesses active. '
-								f'Please choose a user and try again.')
-		return
-	elif message.mentions:
-		user = message.mentions[0]
-	else:
-		await game.channel.send(f'{message.author.mention} There should be a user mention after {game.prefix} correct.')
-		return
-	await game.add_guess(True, user, game.status['guess_queue'][user])
-	await game.channel.send(f'**Game over!** '
-							f'The winner is: {user.mention}\n__The correct guess was:__ **{game.status["guess_queue"][user]}**'
-							f'\n**{len(game.status["answers"])}** questions were asked and '
-							f'**{len(game.status["guesses"])}** guesses were made.\n'
-							f'The winner may now start a new game with `{game.prefix} start`, request someone else'
-							f'to be the defender, or wait until someone else asks to defend and confirm it.')
-	for k, v in game.status['guess_queue'].items():
-		if k != message.author:
-			game.status['guesses'].append((False, k, v))
-	game.status['guess_queue'] = {}
-	await game.end()
+	game.add_guess(True, user, game.status['guess_queue'][user])
+	await game.channel.send(
+		f'**Game over!** '
+		f'The winner is: {user.mention}\n__The correct guess was:__ **{game.status["guesses"][-1][2]}**'
+		f'\n**{len(game.status["answers"])}** questions were asked and '
+		f'**{len(game.status["guesses"])}** guesses were made.\n'
+		f'The winner may now start a new game with `{game.prefix} start`, request someone else '
+		f'to be the defender, or wait until someone asks to defend and confirm it.'
+	)
+	game.status['guess_queue'] = OrderedDict()
+	game.end()
 
 
 @active_only
 @defender_only
 async def incorrect(message):
-	if len(game.status['guess_queue']) == 0:
-		await game.channel.send(f'{message.author.mention} There aren\'t any active guesses.')
+	user = await _confirm_guess(message)
+	if user is None:
 		return
-	elif len(game.status['guess_queue']) == 1:
-		user = list(game.status['guess_queue'].items())[0][0]
-	elif len(message.content.split()) < 3:
-		await game.channel.send(f'{message.author.mention} There are multiple guesses active. '
-								f'Please choose a user and try again.')
-		return
-	elif message.mentions:
-		user = message.mentions[0]
-	else:
-		await game.channel.send(f'{message.author.mention} There should be a user mention after {game.prefix} correct.')
-		return
-	await game.add_guess(False, user, game.status['guess_queue'][user])
+	game.add_guess(False, user, game.status['guess_queue'][user])
 	await game.channel.send(f'**Incorrect guess:** `{game.status["guess_queue"][user]}`')
 	del game.status['guess_queue'][user]
 
@@ -268,10 +274,11 @@ async def incorrect(message):
 @active_only
 @defender_only
 async def end(message):
-	await game.channel.send(f'**The Questions game has been ended by the defender,** {message.author.mention}. '
-							f'Type `{game.prefix} show` to see the results so far or '
-							f'`{game.prefix} start` to start a new game as the defender.')
-	await game.end()
+	await game.channel.send(
+		f'**The 20 Questions game has been ended by the defender,** {message.author.mention}. '
+		f'Type `{game.prefix} show` to see the results so far or '
+		f'`{game.prefix} start` to start a new game as the defender.')
+	game.end()
 
 
 @active_only
@@ -280,14 +287,18 @@ async def guess(message):
 	if len(message.content.split()) < 3:
 		await game.channel.send(f'{message.author.mention} Enter the guess after "{game.prefix} guess" and try again.')
 	elif message.author in game.status['guess_queue']:
-		await game.channel.send(f'{message.author.mention} Please wait until your guess "'
-								f'{game.status["guess_queue"][message.author]}" has been confirmed or denied by the defender.')
+		await game.channel.send(
+			f'{message.author.mention} Please wait until your guess "'
+			f'{game.status["guess_queue"][message.author]}" has been confirmed or denied by the defender.'
+		)
 	else:
 		_guess = ' '.join(message.content.split()[2:])
 		game.status['guess_queue'][message.author] = _guess
-		await game.channel.send(f'**New guess:** `{_guess}`\n'
-								f'{game.defender.mention} Use _{game.prefix} <correct|incorrect> [user]_ to confirm or '
-								f'deny it.\nIf multiple guesses are active, mention the guesser in your command.')
+		await game.channel.send(
+			f'**New guess:** `{_guess}`\n'
+			f'{game.defender.mention} Use _{game.prefix} <correct|incorrect> [user]_ to confirm or '
+			f'deny it.\nIf multiple guesses are active, mention the guesser in your command.'
+		)
 
 
 @active_only

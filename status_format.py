@@ -46,7 +46,7 @@ def apply(
 		formatted += f'You have {(max_guesses - len(guesses))} guesses left.'
 
 	# Hints
-	formatted += '``` ```py\n'
+	formatted += '``` ```bat\n'
 	formatted += f'Hints: {"None" if not hints else ""}'
 	for i, hint in enumerate(hints):
 		formatted += f'\n[{i}] {hint}'

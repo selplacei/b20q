@@ -3,6 +3,8 @@ import sys
 import asyncio
 import configparser
 import json
+from collections import OrderedDict
+
 import discord
 
 import commands
@@ -72,7 +74,7 @@ class b20qGame:
 				return
 			self.status['guesses'].append((c, guesser, g))
 
-		self.status['guess_queue'] = {}
+		self.status['guess_queue'] = OrderedDict()
 		for i, g in _status['guess_queue'].items():
 			i = int(i)
 			guesser = self.client.get_user(i)
@@ -89,14 +91,15 @@ class b20qGame:
 				f'Status stored in memory:\n'
 				f'{self.status}\n'
 				f'Previous contents of status.json:\n'
-				f'{s.read()}'
+				f'{s.read()}\n'
+				f'Writing to JSON file: {write_json}'
 			)
 		self.status = {
 			"defender": None,
 			"answers": [],
 			"hints": [],
 			"guesses": [],
-			"guess_queue": {}
+			"guess_queue": OrderedDict()
 		}
 		if write_json:
 			with open('status.json', 'w+') as s:
@@ -106,7 +109,7 @@ class b20qGame:
 		with open('mods.json') as mods:
 			return user.id in json.load(mods).get(str(guild.id), [])
 
-	async def add_moderator(self, user, guild):
+	def add_moderator(self, user, guild):
 		with open('mods.json') as mods:
 			modlist = json.load(mods)
 		modlist[guild.id] = modlist.get(str(guild.id), [])
@@ -114,7 +117,7 @@ class b20qGame:
 		with open('mods.json', 'w+') as mods:
 			json.dump(modlist, mods)
 
-	async def remove_moderator(self, user, guild):
+	def remove_moderator(self, user, guild):
 		with open('mods.json') as mods:
 			modlist = json.load(mods)
 		if str(guild.id) in modlist and user.id in modlist[str(guild.id)]:
@@ -156,7 +159,7 @@ class b20qGame:
 			return -1
 		return self.max_questions - len(self.status['answers'])
 
-	async def add_answer(self, correct: bool, answer: str):
+	def add_answer(self, correct: bool, answer: str):
 		if self.answers_left > 0 or self.answers_left == -1:
 			self.status['answers'].append((correct, answer))
 
@@ -166,7 +169,7 @@ class b20qGame:
 			return -1
 		return self.max_guesses - len(self.status['guesses'])
 
-	async def add_guess(self, correct: bool, user, guess: str):
+	def add_guess(self, correct: bool, user, guess: str):
 		if self.guesses_left != 0:
 			self.status['guesses'].append((correct, user, guess))
 
@@ -208,7 +211,7 @@ class b20qGame:
 			f'guesses available.'
 		)
 
-	async def end(self):
+	def end(self):
 		self.status['defender'] = None
 
 
@@ -218,9 +221,7 @@ class Client20q(discord.Client):
 			try:
 				await asyncio.wait_for(game.initialize_status(), 20.0)
 			except asyncio.TimeoutError:
-				sys.stderr.write(
-					'Timed out while loading status from JSON. '
-					'The status has been reset for this session, but the file was not overwritten.')
+				sys.stderr.write('Timed out while loading status from JSON.')
 				game.reset_status(write_json=False)
 		if message.content.startswith(game.prefix):
 			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
