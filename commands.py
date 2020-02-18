@@ -357,7 +357,10 @@ async def shutdown(message):
 
 @mod_only
 async def update(message):
+	with open('status_pre-update.json') as file:
+		file.write(game.status_as_json())
 	await message.add_reaction('✅')
+
 	def _update():
 		time.sleep(2)
 		subprocess.call('./update.sh')
@@ -366,5 +369,6 @@ async def update(message):
 			os.execl('/bin/sh', '/bin/sh', './launch.sh')
 		else:
 			os.execl('./venv/bin/python', './venv/bin/python', './b20q.py')
+
 	threading.Thread(target=_update).start()
 	await game.client.close()
