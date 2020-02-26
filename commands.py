@@ -357,7 +357,7 @@ async def shutdown(message):
 
 @mod_only
 async def update(message):
-	with open('status_pre-update.json') as file:
+	with open('status_pre-update.json', 'w') as file:
 		file.write(game.status_as_json())
 	await message.add_reaction('✅')
 
