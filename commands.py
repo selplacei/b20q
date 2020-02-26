@@ -122,12 +122,12 @@ async def show(message):
 
 async def help_(message):
 	TOPIC_ALIASES = {
-		'': '0',
-		'b20q': '0',
-		'20q': '0',
-		'general': '0',
-		'defender': '1',
-		'attacker': '2',
+		'': '1',
+		'b20q': '1',
+		'20q': '1',
+		'general': '1',
+		'defender': '2',
+		'attacker': '3',
 		'mod': 'modcommands',
 		'mod commands': 'modcommands'
 	}
