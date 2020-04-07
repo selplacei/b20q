@@ -115,7 +115,6 @@ async def start(message):
 async def show(message):
 	await status_format.send(
 		game.channel,
-		2000,
 		game.defender,
 		game.status['answers'],
 		game.max_questions,

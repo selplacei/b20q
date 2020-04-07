@@ -70,7 +70,7 @@ def apply(
 	return formatted
 
 
-async def send(channel, max_length, defender, answers, max_questions, hints, guesses, guess_queue, max_guesses):
+async def send(channel, defender, answers, max_questions, hints, guesses, guess_queue, max_guesses, max_length=2000):
 	fragments = apply(
 		defender, answers, max_questions, hints, guesses, guess_queue, max_guesses
 	).split(BREAK_POINT)
