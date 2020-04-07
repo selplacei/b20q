@@ -27,7 +27,7 @@ def _get_name(user):
 	try:
 		return commands.game.channel.guild.get_member(user.id).display_name
 	except AttributeError:
-		return user.nick
+		return user.display_name
 
 
 def apply(
