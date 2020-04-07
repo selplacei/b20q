@@ -207,6 +207,8 @@ async def hint(message):
 async def answer(message):
 	if len(message.content.split()) < 4 or message.content.split()[2] not in ('yes', 'no'):
 		await game.channel.send(f'{message.author.mention} Format: {game.prefix} answer <yes|no> <answer>')
+	elif game.answers_left == 0:
+		await game.channel.send('There are no questions left.')
 	else:
 		_answer = ' '.join(message.content.split()[3:])
 		_correct = message.content.split()[2] == 'yes'
@@ -287,6 +289,8 @@ async def end(message):
 async def guess(message):
 	if len(message.content.split()) < 3:
 		await game.channel.send(f'{message.author.mention} Enter the guess after "{game.prefix} guess" and try again.')
+	elif game.guesses_left == 0:
+		await game.channel.send('There are no guesses left.')
 	elif message.author in game.status['guess_queue']:
 		await game.channel.send(
 			f'{message.author.mention} Please wait until your guess "'

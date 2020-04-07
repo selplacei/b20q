@@ -163,8 +163,7 @@ class b20qGame:
 		return self.max_questions - len(self.status['answers'])
 
 	def add_answer(self, correct: bool, answer: str):
-		if self.answers_left > 0 or self.answers_left == -1:
-			self.status['answers'].append((correct, answer))
+		self.status['answers'].append((correct, answer))
 
 	@property
 	def guesses_left(self) -> int:
@@ -173,8 +172,7 @@ class b20qGame:
 		return self.max_guesses - len(self.status['guesses'])
 
 	def add_guess(self, correct: bool, user, guess: str):
-		if self.guesses_left != 0:
-			self.status['guesses'].append((correct, user, guess))
+		self.status['guesses'].append((correct, user, guess))
 
 	@property
 	def winner(self):
