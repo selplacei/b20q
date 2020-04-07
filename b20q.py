@@ -9,6 +9,9 @@ import discord
 
 import commands
 
+MAX_MESSAGE_LENGTH = 2000
+MESSAGE_SPLIT_WARNING = '**[Message split due to exceeding the length limit. Formatting may be broken.]**'
+
 config = configparser.ConfigParser()
 config.read('config.cfg')
 
@@ -41,6 +44,25 @@ class b20qGame:
 		# Save the game status to the JSON file
 		with open('status.json', 'w') as status:
 			status.write(self.status_as_json())
+
+	async def send(self, content, *args, **kwargs):
+		# Use this instead of channel.send() to implement custom behavior.
+		try:
+			if len(content) > MAX_MESSAGE_LENGTH:
+				fragments = [content[i:i+MAX_MESSAGE_LENGTH] for i in range(0, len(content), MAX_MESSAGE_LENGTH)]
+				parts = [None, MESSAGE_SPLIT_WARNING] * len(fragments)
+				parts[0::2] = fragments
+				parts.pop()
+				for part in parts:
+					await self.channel.send(part, *args, **kwargs)
+			else:
+				await self.channel.send(content, *args, **kwargs)
+		except Exception as e:
+			await self.channel.send(
+				f'An exception occurred when sending this message:\n'
+				f'{str(e)}'
+			)
+			raise
 
 	def status_as_json(self):
 		_status = self.status.copy()

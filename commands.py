@@ -43,7 +43,7 @@ async def execute_command(message):
 			await fn(message)
 			break
 	else:
-		await game.channel.send(f'{message.author.mention} Unknown command "{message.content.split()[1]}".')
+		await game.send(f'{message.author.mention} Unknown command "{message.content.split()[1]}".')
 
 
 def active_only(fn):
@@ -80,12 +80,12 @@ def attacker_only(fn):
 
 async def on_mod_only_fail(message):
 	if game.warn_mod_only_fail:
-		await game.channel.send(f'{message.author.mention} This command can only be used by moderators.')
+		await game.send(f'{message.author.mention} This command can only be used by moderators.')
 
 
 async def start(message):
 	if game.active:
-		await game.channel.send(
+		await game.send(
 			f'A game is already running! The current defender is {game.defender}.\n'
 			f'Hint: the current defender can use `{game.prefix} end` to end the game prematurely.\n'
 			f'Alternatively, a moderator can use `{game.prefix} force end` to end the current game.'
@@ -98,7 +98,7 @@ async def start(message):
 			await game.await_confirmation([user], message.channel, lambda u: game.start(user))
 			return
 		else:
-			await game.channel.send(
+			await game.send(
 				f'{message.author.mention} Only the previous game\'s winner can request someone '
 				f'else to be the defender.'
 			)
@@ -114,7 +114,6 @@ async def start(message):
 
 async def show(message):
 	await status_format.send(
-		game.channel,
 		game.defender,
 		game.status['answers'],
 		game.max_questions,
@@ -143,11 +142,11 @@ async def help_(message):
 		with open(f'./HelpTopics/{topic}.txt') as helptxt:
 			text = helptxt.read().replace('%prefix%', game.prefix)
 			if topic != 'modcommands' or game.is_moderator(message.author, message.guild):
-				await game.channel.send(f'{message.author.mention}\n{text}')
+				await game.send(f'{message.author.mention}\n{text}')
 	elif topic.isdigit():
-		await game.channel.send(f'{message.author.mention} Help page not found.')
+		await game.send(f'{message.author.mention} Help page not found.')
 	else:
-		await game.channel.send(f'{message.author.mention} Help topic not found.')
+		await game.send(f'{message.author.mention} Help topic not found.')
 
 
 @active_only
@@ -155,7 +154,7 @@ async def help_(message):
 async def edit(message):
 	args = message.content.split()
 	if (len(args) < 5) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
-		await game.channel.send(f'{message.author.mention} Format: `{game.prefix} edit <answer|hint> <index> <result>`')
+		await game.send(f'{message.author.mention} Format: `{game.prefix} edit <answer|hint> <index> <result>`')
 		return
 	index = int(args[3]) - 1
 	result = ' '.join(args[4:])
@@ -187,7 +186,7 @@ async def edit(message):
 async def delete(message):
 	args = message.content.split()
 	if (len(args) < 4) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
-		await game.channel.send(f'{message.author.mention} Format: `{game.prefix} delete <answer|hint> <index>`')
+		await game.send(f'{message.author.mention} Format: `{game.prefix} delete <answer|hint> <index>`')
 		return
 	part = args[2]
 	index = int(args[3]) - 1
@@ -204,21 +203,21 @@ async def hint(message):
 	if len(message.content.split()) > 2:
 		_hint = ' '.join(message.content.split()[2:])
 		game.status['hints'].append(_hint)
-		await game.channel.send(f'**A new hint has been added by {message.author.mention}:**\n`{_hint}`')
+		await game.send(f'**A new hint has been added by {message.author.mention}:**\n`{_hint}`')
 
 
 @active_only
 @defender_only
 async def answer(message):
 	if len(message.content.split()) < 4 or message.content.split()[2] not in ('yes', 'no'):
-		await game.channel.send(f'{message.author.mention} Format: {game.prefix} answer <yes|no> <answer>')
+		await game.send(f'{message.author.mention} Format: {game.prefix} answer <yes|no> <answer>')
 	elif game.answers_left == 0:
-		await game.channel.send('There are no questions left.')
+		await game.send('There are no questions left.')
 	else:
 		_answer = ' '.join(message.content.split()[3:])
 		_correct = message.content.split()[2] == 'yes'
 		game.add_answer(_correct, _answer)
-		await game.channel.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
+		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
 
 
 async def _confirm_guess(message):
@@ -227,12 +226,12 @@ async def _confirm_guess(message):
 	Returns the user whose guess is being confirmed or None if not found.
 	"""
 	if len(game.status['guess_queue']) == 0:
-		await game.channel.send(f'{message.author.mention} There are no active guesses.')
+		await game.send(f'{message.author.mention} There are no active guesses.')
 		return None
 	elif message.mentions:
 		user = message.mentions[0]
 		if user not in game.status['guess_queue']:
-			await game.channel.send(
+			await game.send(
 				f'That user hasn\'t made any guesses. '
 				f'Use `{game.prefix} show` to view the guess queue.'
 			)
@@ -242,7 +241,7 @@ async def _confirm_guess(message):
 	elif len(game.status['guess_queue']) == 1:
 		return list(game.status['guess_queue'].items())[0][0]
 	else:
-		await game.channel.send(
+		await game.send(
 			f'{message.author.mention} There are multiple guesses active. '
 			f'Please choose a user and try again.'
 		)
@@ -256,7 +255,7 @@ async def correct(message):
 	if user is None:
 		return
 	game.add_guess(True, user, game.status['guess_queue'][user])
-	await game.channel.send(
+	await game.send(
 		f'**Game over!** '
 		f'The winner is: {user.mention}\n__The correct guess was:__ **{game.status["guesses"][-1][2]}**'
 		f'\n**{len(game.status["answers"])}** questions were asked and '
@@ -275,14 +274,14 @@ async def incorrect(message):
 	if user is None:
 		return
 	game.add_guess(False, user, game.status['guess_queue'][user])
-	await game.channel.send(f'**Incorrect guess:** `{game.status["guess_queue"][user]}`')
+	await game.send(f'**Incorrect guess:** `{game.status["guess_queue"][user]}`')
 	del game.status['guess_queue'][user]
 
 
 @active_only
 @defender_only
 async def end(message):
-	await game.channel.send(
+	await game.send(
 		f'**The 20 Questions game has been ended by the defender,** {message.author.mention}. '
 		f'Type `{game.prefix} show` to see the results so far or '
 		f'`{game.prefix} start` to start a new game as the defender.')
@@ -293,18 +292,18 @@ async def end(message):
 @attacker_only
 async def guess(message):
 	if len(message.content.split()) < 3:
-		await game.channel.send(f'{message.author.mention} Enter the guess after "{game.prefix} guess" and try again.')
+		await game.send(f'{message.author.mention} Enter the guess after "{game.prefix} guess" and try again.')
 	elif game.guesses_left == 0:
-		await game.channel.send('There are no guesses left.')
+		await game.send('There are no guesses left.')
 	elif message.author in game.status['guess_queue']:
-		await game.channel.send(
+		await game.send(
 			f'{message.author.mention} Please wait until your guess "'
 			f'{game.status["guess_queue"][message.author]}" has been confirmed or denied by the defender.'
 		)
 	else:
 		_guess = ' '.join(message.content.split()[2:])
 		game.status['guess_queue'][message.author] = _guess
-		await game.channel.send(
+		await game.send(
 			f'**New guess:** `{_guess}`\n'
 			f'{game.defender.mention} Use _{game.prefix} <correct|incorrect> [user]_ to confirm or '
 			f'deny it.\nIf multiple guesses are active, mention the guesser in your command.'
@@ -323,7 +322,7 @@ async def unguess(message):
 
 @mod_only
 async def sample(message):
-	await game.channel.send(status_format.apply(
+	await game.send(status_format.apply(
 			message.author,
 			[(False, 'This guess was incorrect.'), (True, 'This guess was correct.'), (True, 'This one too.')],
 			42,
@@ -337,11 +336,11 @@ async def sample(message):
 @mod_only
 async def id_(message):
 	if message.mentions:
-		await game.channel.send(message.mentions[0].id)
+		await game.send(message.mentions[0].id)
 	elif message.content.startswith(f'{game.prefix} id guild'):
-		await game.channel.send(message.guild.id)
+		await game.send(message.guild.id)
 	else:
-		await game.channel.send(message.author.id)
+		await game.send(message.author.id)
 
 
 @mod_only
@@ -350,7 +349,7 @@ async def save(message):
 	if filename == 'stdout':
 		sys.stdout.write(game.status_as_json())
 	elif filename == 'here':
-		await game.channel.send(game.status_as_json())
+		await game.send(game.status_as_json())
 	else:
 		with open(filename, 'w') as file:
 			file.write(game.status_as_json())
