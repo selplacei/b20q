@@ -8,19 +8,15 @@ import commands
 
 # If a message exceeds Discord's length limit, it will be split into chunks that satisfy the limit.
 # If breakpoints exist, b20q will try to split the message at those breakpoints.
-# A breakpoint is a substring consisting of three parts:
-# - the start, equal to BRK1;
-# - the middle, made of a substring followed by BRK2. If a split happens at the breakpoint, the preceding message
-#   will end in that substring.
-# - the end, made of a substring followed by BRK3. If a split happens at the breakpoint, the latter message will
-#   start with that substring.
-# The start/end substrings may not contain any of BRK1, BRK2, or BRK3.
-# Every BRK1 should have a matching BRK2 and BRK3.
+# Breakpoints are applied by inserting the result of breakpoint() into the format string at the appropriate place.
+# If a string is split at a breakpoint, the preceding message will end in end_l and the latter will start with start_r. 
 # If a message has to be split without a breakpoint, b20q.MESSAGE_SPLIT_WARNING will be inserted at the split.
-BRK1 = '\ue000'
-BRK2 = '\ue001'
-BRK3 = '\ue002'
-BRK_EMPTY = BRK1 + BRK2 + BRK3
+# A breakpoint is a substring starting with BRK1, ending with BRK3, and containing one BRK2.
+BRK1, BRK2, BRK3 = '\ue000', '\ue001', '\ue003'
+
+
+def breakpoint(end_l='', start_r=''):
+    return BRK1 + end_l + BRK2 + start_r + BRK3
 
 
 def _get_name(user):
@@ -50,14 +46,14 @@ def apply(
 	formatted += (f'"{_get_name(defender)} ({defender})"' if defender else 'None (the game is currently not active)')
 
 	# Answers
-	formatted += f'``` {BRK_EMPTY}```diff'
+	formatted += f'``` {breakpoint()}```diff'
 	if not answers:
 		formatted += '\nNo answers so far.'
 	for i, (correct, answer) in enumerate(answers):
-		formatted += f'\n{"+" if correct else "-"} [{i + 1}] {answer}{BRK1}```{BRK2}```diff{BRK3}'
+		formatted += f'\n{"+" if correct else "-"} [{i + 1}] {answer}' + breakpoint('```', '```diff')
 
 	# Questions/guesses left
-	formatted += f'``` {BRK_EMPTY}```py\n'
+	formatted += f'``` {breakpoint()}```py\n'
 	if max_questions == -1:
 		formatted += 'You have unlimited questions.\n'
 	else:
@@ -68,22 +64,22 @@ def apply(
 		formatted += f'You have {(max_guesses - len(guesses))} guesses left.'
 
 	# Hints
-	formatted += f'``` {BRK_EMPTY}```bat\n'
+	formatted += f'``` {breakpoint()}```bat\n'
 	formatted += f'Hints: {"None" if not hints else ""}'
 	for i, hint in enumerate(hints):
-		formatted += f'\n[{i + 1}] {hint}{BRK1}```{BRK2}```bat{BRK3}'
+		formatted += f'\n[{i + 1}] {hint}' + breakpoint('```', '```bat')
 
 	# Guesses
 	if guesses or guess_queue:
-		formatted += f'``` {BRK_EMPTY}```diff\n'
+		formatted += f'``` {breakpoint()}```diff\n'
 		formatted += 'Guesses:\n'
 		for i, (correct, guesser, guess) in enumerate(guesses):
-			formatted += f'{"+" if correct else "-"} [{i + 1}] {_get_name(guesser)}: {guess}{BRK1}```{BRK2}```diff{BRK3}\n'
+			formatted += f'{"+" if correct else "-"} [{i + 1}] {_get_name(guesser)}: {guess}{breakpoint("```", "```diff")}\n'
 		for guesser, guess in guess_queue:
-			formatted += f'? {_get_name(guesser)}: {guess}{BRK1}```{BRK2}```diff{BRK3}\n'
+			formatted += f'? {_get_name(guesser)}: {guess}{breakpoint("```", "```diff")}\n'
 		formatted += '```'
 	else:
-		formatted += f'``` {BRK_EMPTY}```\nNo guesses so far.```'
+		formatted += f'``` {breakpoint()}```\nNo guesses so far.```'
 
 	return formatted
 
@@ -121,7 +117,6 @@ def split_breakpoints(raw_message):
 
 def collapse_breakpoints(split_list, max_length):
 	# Takes the result of split_breakpoints() and produces a list of fragments to be sent according to max_length.
-	# This also splits normal parts if they exceed max_length, even if they don't contain a breakpoint.
 	fragments = [split_list.pop(0)]
 	uncollapsed = split_list
 	while len(uncollapsed) > 1:
