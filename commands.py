@@ -36,14 +36,15 @@ async def execute_command(message):
 		'off': shutdown,
 		'update': update
 	}
-	if len(message.content.split()) <= 1:
+        content = message.content.lstrip(game.prefix)
+	if len(content) == 0:
 		return
 	for command, fn in COMMANDS.items():
-		if message.content.startswith(f'{game.prefix} {command}'):
+		if message.content.startswith(f'{game.prefix}{command}'):
 			await fn(message)
 			break
 	else:
-		await game.send(f'{message.author.mention} Unknown command "{message.content.split()[1]}".')
+		await game.send(f'{message.author.mention} Unknown command "{content.split()[0]}".')
 
 
 def active_only(fn):
@@ -87,11 +88,11 @@ async def start(message):
 	if game.active:
 		await game.send(
 			f'A game is already running! The current defender is {game.defender}.\n'
-			f'Hint: the current defender can use `{game.prefix} end` to end the game prematurely.\n'
-			f'Alternatively, a moderator can use `{game.prefix} force end` to end the current game.'
+			f'Hint: the current defender can use `{game.prefix}end` to end the game prematurely.\n'
+			f'Alternatively, a moderator can use `{game.prefix}force end` to end the current game.'
 		)
 		return
-	if message.mentions and message.content.startswith(f'{game.prefix} start <@'):
+	if message.mentions and message.content.startswith(f'{game.prefix}start <@'):
 		if message.author == game.winner:
 			# The winner asked someone else to be the defender. Wait for their confirmation.
 			user = message.mentions[0]
@@ -135,7 +136,8 @@ async def help_(message):
 		'mod': 'modcommands',
 		'mod commands': 'modcommands'
 	}
-	topic = ' '.join(message.content.split()[2:]).lower()
+        content = message.content.lstrip(game.prefix)
+	topic = ' '.join(content.split()[1:]).lower()
 	if topic in TOPIC_ALIASES:
 		topic = TOPIC_ALIASES[topic]
 	if os.path.exists(f'./HelpTopics/{topic}.txt'):
@@ -152,9 +154,9 @@ async def help_(message):
 @active_only
 @defender_only
 async def edit(message):
-	args = message.content.split()
+	args = [game.prefix] + message.content.lstrip(game.prefix).split()
 	if (len(args) < 5) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
-		await game.send(f'{message.author.mention} Format: `{game.prefix} edit <answer|hint> <index> <result>`')
+		await game.send(f'{message.author.mention} Format: `{game.prefix}edit <answer|hint> <index> <result>`')
 		return
 	index = int(args[3]) - 1
 	result = ' '.join(args[4:])
@@ -184,9 +186,9 @@ async def edit(message):
 @active_only
 @defender_only
 async def delete(message):
-	args = message.content.split()
+        args = [game.prefix] + message.content.lstrip(game.prefix).split()
 	if (len(args) < 4) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
-		await game.send(f'{message.author.mention} Format: `{game.prefix} delete <answer|hint> <index>`')
+		await game.send(f'{message.author.mention} Format: `{game.prefix}delete <answer|hint> <index>`')
 		return
 	part = args[2]
 	index = int(args[3]) - 1
@@ -200,8 +202,9 @@ async def delete(message):
 @active_only
 @defender_only
 async def hint(message):
-	if len(message.content.split()) > 2:
-		_hint = ' '.join(message.content.split()[2:])
+        content = message.content.lstrip(game.prefix)
+	if len(content.split()) > 1:
+		_hint = ' '.join(content.split()[1:])
 		game.status['hints'].append(_hint)
 		await game.send(f'**A new hint has been added by {message.author.mention}:**\n`{_hint}`')
 
@@ -209,13 +212,14 @@ async def hint(message):
 @active_only
 @defender_only
 async def answer(message):
-	if len(message.content.split()) < 4 or message.content.split()[2] not in ('yes', 'no'):
-		await game.send(f'{message.author.mention} Format: {game.prefix} answer <yes|no> <answer>')
+        content = message.content.lstrip(game.prefix)
+	if len(content.split()) < 3 or content.split()[1] not in ('yes', 'no'):
+		await game.send(f'{message.author.mention} Format: {game.prefix}answer <yes|no> <answer>')
 	elif game.answers_left == 0:
 		await game.send('There are no questions left.')
 	else:
-		_answer = ' '.join(message.content.split()[3:])
-		_correct = message.content.split()[2] == 'yes'
+		_answer = ' '.join(content.split()[2:])
+		_correct = content.split()[1] == 'yes'
 		game.add_answer(_correct, _answer)
 		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
 
@@ -233,7 +237,7 @@ async def _confirm_guess(message):
 		if user not in game.status['guess_queue']:
 			await game.send(
 				f'That user hasn\'t made any guesses. '
-				f'Use `{game.prefix} show` to view the guess queue.'
+				f'Use `{game.prefix}show` to view the guess queue.'
 			)
 			return None
 		else:
@@ -260,7 +264,7 @@ async def correct(message):
 		f'The winner is: {user.mention}\n__The correct guess was:__ **{game.status["guesses"][-1][2]}**'
 		f'\n**{len(game.status["answers"])}** questions were asked and '
 		f'**{len(game.status["guesses"])}** guesses were made.\n'
-		f'The winner may now start a new game with `{game.prefix} start`, request someone else '
+		f'The winner may now start a new game with `{game.prefix}start`, request someone else '
 		f'to be the defender, or wait until someone asks to defend and confirm it.'
 	)
 	game.status['guess_queue'] = OrderedDict()
@@ -283,16 +287,17 @@ async def incorrect(message):
 async def end(message):
 	await game.send(
 		f'**The 20 Questions game has been ended by the defender,** {message.author.mention}. '
-		f'Type `{game.prefix} show` to see the results so far or '
-		f'`{game.prefix} start` to start a new game as the defender.')
+		f'Type `{game.prefix}show` to see the results so far or '
+		f'`{game.prefix}start` to start a new game as the defender.')
 	game.end()
 
 
 @active_only
 @attacker_only
 async def guess(message):
-	if len(message.content.split()) < 3:
-		await game.send(f'{message.author.mention} Enter the guess after "{game.prefix} guess" and try again.')
+        content = message.content.lstrip(game.prefix)
+	if len(content.split()) < 2:
+		await game.send(f'{message.author.mention} Enter the guess after "{game.prefix}guess" and try again.')
 	elif game.guesses_left == 0:
 		await game.send('There are no guesses left.')
 	elif message.author in game.status['guess_queue']:
@@ -301,11 +306,11 @@ async def guess(message):
 			f'{game.status["guess_queue"][message.author]}" has been confirmed or denied by the defender.'
 		)
 	else:
-		_guess = ' '.join(message.content.split()[2:])
+		_guess = ' '.join(content.split()[1:])
 		game.status['guess_queue'][message.author] = _guess
 		await game.send(
 			f'**New guess:** `{_guess}`\n'
-			f'{game.defender.mention} Use _{game.prefix} <correct|incorrect> [user]_ to confirm or '
+			f'{game.defender.mention} Use _{game.prefix}<correct|incorrect> [user]_ to confirm or '
 			f'deny it.\nIf multiple guesses are active, mention the guesser in your command.'
 		)
 
@@ -337,7 +342,7 @@ async def sample(message):
 async def id_(message):
 	if message.mentions:
 		await game.send(message.mentions[0].id)
-	elif message.content.startswith(f'{game.prefix} id guild'):
+	elif message.content.startswith(f'{game.prefix}id guild'):
 		await game.send(message.guild.id)
 	else:
 		await game.send(message.author.id)
@@ -345,7 +350,8 @@ async def id_(message):
 
 @mod_only
 async def save(message):
-	filename = message.content.split()[2] if len(message.content.split()) > 2 else 'status.json'
+        content = message.content.lstrip(game.prefix)
+	filename = content.split()[1] if len(content.split()) > 1 else 'status.json'
 	if filename == 'stdout':
 		sys.stdout.write(game.status_as_json())
 	elif filename == 'here':

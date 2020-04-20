@@ -1,12 +1,12 @@
 `Page 1 of 3:`
 **General Commands**
-_%prefix% start_
+_%prefix%start_
 	Start the game as the defender. Unless the previous game had no winner, if you're not that user,
-	requires _%prefix% <confirm|deny>_ from either the winner or a moderator.
-_%prefix% start <user>_
+	requires _%prefix%<confirm|deny>_ from either the winner or a moderator.
+_%prefix%start <user>_
 	This command can only be used by the previous winner.
-	Request _user_ to be the defender. Requires _%prefix% <confirm|deny>_ from either them or a moderator.
-_%prefix% show_
+	Request _user_ to be the defender. Requires _%prefix%<confirm|deny>_ from either them or a moderator.
+_%prefix%show_
 	Show the current game status.
-_%prefix% help [page]_
+_%prefix%help [page]_
 	List available commands.

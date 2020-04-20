@@ -1,16 +1,16 @@
 **Mod Commands**
-%prefix% force start [user]
-%prefix% force end [winner]
-%prefix% defender <user>
-%prefix% sample
-%prefix% save [filename]  // 'stdout' for normal stdout, 'here' to send to the Discord channel
-%prefix% load
-%prefix% shutdown
-%prefix% update
-%prefix% mod <user>
-%prefix% unmod <user>
+%prefix%force start [user]
+%prefix%force end [winner]
+%prefix%defender <user>
+%prefix%sample
+%prefix%save [filename]  // 'stdout' for normal stdout, 'here' to send to the Discord channel
+%prefix%load
+%prefix%shutdown
+%prefix%update
+%prefix%mod <user>
+%prefix%unmod <user>
 
 (all defender commands)
 
-%prefix% config <prefix|maxQuestions|maxGuesses|allowHints> <set|read> [value]
-%prefix% id [guild|(user mention)]
+%prefix%config <prefix|maxQuestions|maxGuesses|allowHints> <set|read> [value]
+%prefix%id [guild|(user mention)]

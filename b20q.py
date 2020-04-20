@@ -212,10 +212,10 @@ class b20qGame:
 		responded = False
 		while not responded:
 			msg = await self.client.wait_for('message', check=self._confirmation_check)
-			if msg.content.startswith(f'{self.prefix} confirm'):
+			if msg.content.startswith(f'{self.prefix}confirm'):
 				responded = True
 				callback(msg.author)
-			elif msg.content.startswith(f'{self.prefix} deny'):
+			elif msg.content.startswith(f'{self.prefix}deny'):
 				responded = True
 
 	async def start(self, defender):
