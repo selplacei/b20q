@@ -152,7 +152,7 @@ class b20qGame:
 
     @property
     def prefix(self):
-        return config['b20q']['prefix']
+        return config['b20q']['prefix'] + ' ' if config['b20q'].getboolean('spaceAfterPrefix') else ''
 
     @property
     def defender(self):
