@@ -1,5 +1,6 @@
 `Page 2 of 3:`
 **Defender Commands**
+Note: for _edit_, _hint_, _answer_, and _guess_, only the first line of the message will be looked at.
 _%prefix%edit <answer|hint> <index> <result>_
 	Edit an answer or hint. If editing an answer, _result_ can start with _yes_ or _no_ to edit that.
 _%prefix%delete <answer|hint> <index>_

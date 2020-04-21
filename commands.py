@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 import b20q
 import status_format
+import utils
 
 game: b20q.b20qGame
 
@@ -154,12 +155,12 @@ async def help_(message):
 @active_only
 @defender_only
 async def edit(message):
-    args = [game.prefix] + message.content.lstrip(game.prefix).split()
+    args = [game.prefix] + message.content.lstrip(game.prefix).split('\n')[0].split()
     if (len(args) < 5) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
         await game.send(f'{message.author.mention} Format: `{game.prefix}edit <answer|hint> <index> <result>`')
         return
     index = int(args[3]) - 1
-    result = ' '.join(args[4:])
+    result = utils.remove_formatting(' '.join(args[4:]))
     if args[2] == 'answer' and (result.startswith('yes ') or result.startswith('no ')):
         try:
             game.status['answers'][index] = (result.startswith('yes '), game.status['answers'][index][1])
@@ -202,9 +203,9 @@ async def delete(message):
 @active_only
 @defender_only
 async def hint(message):
-    content = message.content.lstrip(game.prefix)
+    content = message.content.split('\n')[0].lstrip(game.prefix)
     if len(content.split()) > 1:
-        _hint = ' '.join(content.split()[1:])
+        _hint = utils.remove_formatting(' '.join(content.split()[1:]))
         game.status['hints'].append(_hint)
         await game.send(f'**A new hint has been added by {message.author.mention}:**\n`{_hint}`')
 
@@ -212,13 +213,13 @@ async def hint(message):
 @active_only
 @defender_only
 async def answer(message):
-    content = message.content.lstrip(game.prefix)
+    content = message.content.split('\n')[0].lstrip(game.prefix)
     if len(content.split()) < 3 or content.split()[1] not in ('yes', 'no'):
         await game.send(f'{message.author.mention} Format: {game.prefix}answer <yes|no> <answer>')
     elif game.answers_left == 0:
         await game.send('There are no questions left.')
     else:
-        _answer = ' '.join(content.split()[2:])
+        _answer = utils.remove_formatting(' '.join(content.split()[2:]))
         _correct = content.split()[1] == 'yes'
         game.add_answer(_correct, _answer)
         await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
@@ -295,7 +296,7 @@ async def end(message):
 @active_only
 @attacker_only
 async def guess(message):
-    content = message.content.lstrip(game.prefix)
+    content = message.content.split('\n')[0].lstrip(game.prefix)
     if len(content.split()) < 2:
         await game.send(f'{message.author.mention} Enter the guess after "{game.prefix}guess" and try again.')
     elif game.guesses_left == 0:
@@ -306,7 +307,7 @@ async def guess(message):
             f'{game.status["guess_queue"][message.author]}" has been confirmed or denied by the defender.'
         )
     else:
-        _guess = ' '.join(content.split()[1:])
+        _guess = utils.remove_formatting(' '.join(content.split()[1:]))
         game.status['guess_queue'][message.author] = _guess
         await game.send(
             f'**New guess:** `{_guess}`\n'
@@ -328,14 +329,14 @@ async def unguess(message):
 @mod_only
 async def sample(message):
     await game.send(status_format.apply(
-                    message.author,
-                    [(False, 'This guess was incorrect.'), (True, 'This guess was correct.'), (True, 'This one too.')],
-                    42,
-                    ['Hint 1', 'Hint 2'],
-                    [(False, message.author, 'Beach'), (True, message.author, 'Bathtub')],
-                    [],
-                    -1
-                    ))
+        message.author,
+        [(False, 'This guess was incorrect.'), (True, 'This guess was correct.'), (True, 'This one too.')],
+        42,
+        ['Hint 1', 'Hint 2'],
+        [(False, message.author, 'Beach'), (True, message.author, 'Bathtub')],
+        [],
+        -1
+    ))
 
 
 @mod_only

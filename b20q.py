@@ -246,7 +246,7 @@ class Client20q(discord.Client):
             except asyncio.TimeoutError:
                 sys.stderr.write('Timed out while loading status from JSON.')
                 game.reset_status(write_json=False)
-        if message.content.startswith(game.prefix):
+        if message.author != self.user and message.content.startswith(game.prefix):
             print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
             game.channel = message.channel
             await commands.execute_command(message)
