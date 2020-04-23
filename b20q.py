@@ -61,7 +61,7 @@ class b20qGame:
 	async def send(self, content, *args, **kwargs):
 		# Use this instead of channel.send() to implement custom behavior.
 		try:
-			if len(content) > MAX_MESSAGE_LENGTH:
+			if len(str(content)) > MAX_MESSAGE_LENGTH:
 				fragments = [content[i:i + MAX_MESSAGE_LENGTH] for i in range(0, len(content), MAX_MESSAGE_LENGTH)]
 				parts = [None, MESSAGE_SPLIT_WARNING] * len(fragments)
 				parts[0::2] = fragments
