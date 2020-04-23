@@ -1,6 +1,10 @@
 import re
 
 
+async def noop():
+	pass
+
+
 def remove_formatting(text):
 	re_strip = (
 		(r'(\*{1,3})(.+?)\1', '*'),
@@ -13,7 +17,7 @@ def remove_formatting(text):
 		(r'(\|\|)(.+?)\1', '||')
 	)
 	re_special_code_block = r'```\w+$'
-	
+
 	text = re.sub(re_special_code_block, '', text)
 	for regex, char in re_strip:
 		for match in re.finditer(regex, text):
