@@ -36,7 +36,7 @@ class b20qGame:
 		self.status = {}
 		self.channel = None
 		self.initialized = False
-		# {user: (success_callback, fail_callback)}
+		self.start_open_to_all = False
 		self.confirmation_queue = {}
 		self.client = Client20q()
 
@@ -250,6 +250,7 @@ class b20qGame:
 
 	def end(self):
 		self.status['defender'] = None
+		self.start_open_to_all = (self.winner is None)
 
 
 class Client20q(discord.Client):

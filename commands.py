@@ -18,6 +18,7 @@ async def execute_command(message):
 		'start': start,
 		'show': show,
 		'help': help_,
+		'open': open_,
 		'confirm': confirm,
 		'deny': deny,
 
@@ -56,7 +57,6 @@ def active_only(fn):
 			await fn(message)
 		else:
 			await message.add_reaction('❌')
-
 	return wrapper
 
 
@@ -66,7 +66,6 @@ def mod_only(fn):
 			await fn(message)
 		else:
 			await on_mod_only_fail(message)
-
 	return wrapper
 
 
@@ -74,7 +73,6 @@ def defender_only(fn):
 	async def wrapper(message):
 		if message.author == game.defender or game.is_moderator(message.author, message.guild):
 			await fn(message)
-
 	return wrapper
 
 
@@ -82,7 +80,13 @@ def attacker_only(fn):
 	async def wrapper(message):
 		if message.author != game.defender:
 			await fn(message)
+	return wrapper
 
+
+def winner_only(fn):
+	async def wrapper(message):
+		if message.author == game.winner:
+			await fn(message)
 	return wrapper
 
 
@@ -109,6 +113,15 @@ async def deny(message):
 		await message.add_reaction('❌')
 
 
+@winner_only
+async def open_(message):
+	game.start_open_to_all = True
+	await game.send(
+		f'The winner has opened the game to everyone. '
+		f'Type `{game.prefix}start` to start; you don\'t need a confirmation.'
+	)
+
+
 async def start(message):
 	if game.active:
 		await game.send(
@@ -117,7 +130,7 @@ async def start(message):
 			f'Alternatively, a moderator can use `{game.prefix}force end` to end the current game.'
 		)
 		return
-	if (not game.winner) or message.author == game.winner:
+	if game.start_open_to_all or message.author == game.winner:
 		# The game is not active, and the caller isn't interfering with the previous winner's priority.
 		await game.start(message.author)
 	else:
