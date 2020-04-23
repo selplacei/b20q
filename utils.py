@@ -13,12 +13,12 @@ def remove_formatting(text):
 		(r'(\|\|)(.+?)\1', '||')
 	)
 	re_special_code_block = r'```\w+$'
-
+	
+	text = re.sub(re_special_code_block, '', text)
 	for regex, char in re_strip:
 		for match in re.finditer(regex, text):
 			text = text.replace(match.group(), match.group().strip(char))
 	for regex, substr in re_strip_one:
 		for match in re.finditer(regex, text):
 			text = text.replace(match.group(), match.group()[len(substr):-len(substr)])
-	text = re.sub(re_special_code_block, '', text)
 	return text
