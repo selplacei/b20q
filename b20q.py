@@ -36,7 +36,7 @@ class b20qGame:
 		self.status = {}
 		self.channel = None
 		self.initialized = False
-		self.start_open_to_all = False
+		self._start_opened = False
 		self.confirmation_queue = {}
 		self.client = Client20q()
 
@@ -184,6 +184,10 @@ class b20qGame:
 	@winner.setter
 	def winner(self, value):
 		self.status['winner'] = value
+
+	@property
+	def start_open_to_all(self):
+		return (self.winner is None) or self._start_opened
 
 	@property
 	def defender(self):

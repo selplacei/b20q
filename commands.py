@@ -115,7 +115,7 @@ async def deny(message):
 
 @winner_only
 async def open_(message):
-	game.start_open_to_all = True
+	game._start_opened = True
 	await game.send(
 		f'The winner has opened the game to everyone. '
 		f'Type `{game.prefix}start` to start; you don\'t need a confirmation.'

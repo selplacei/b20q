@@ -4,7 +4,7 @@ _%prefix%start_
 	Start the game as the defender. This can be used by the winner of the previous game,
     or any user if the winner opened the game by typing _%prefix%open_.
     Otherwise, anyone can request the spot by issuing this command, but they will
-    need confirmation from the winner (who will use _%prefix%confirm_ or _%prefix%_deny).
+    need confirmation from the winner (who will use _%prefix%confirm_ or _%prefix%deny_).
 _%prefix%show_
 	Show the current game status.
 _%prefix%help [page]_
