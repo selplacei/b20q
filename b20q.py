@@ -33,6 +33,7 @@ class _DiscordUserSerializer(json.JSONEncoder):
 # Game state
 class b20qGame:
 	def __init__(self):
+            # Status is saved with 20q save
 		self.status = {}
 		self.channel = None
 		self.initialized = False
