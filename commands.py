@@ -246,7 +246,7 @@ async def hint(message):
 	if len(content.split()) > 1:
 		_hint = utils.remove_formatting(' '.join(content.split()[1:]))
 		game.status['hints'].append(_hint)
-		await game.send(f'**A new hint has been added by {message.author.mention}:**\n`{_hint}`')
+		await game.send(f'**New hint:**\n`{_hint or " "}`')
 
 
 @active_only
@@ -261,7 +261,7 @@ async def answer(message):
 		_answer = utils.remove_formatting(' '.join(content.split()[2:]))
 		_correct = content.split()[1] == 'yes'
 		game.add_answer(_correct, _answer)
-		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer}\n```')
+		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer or " "}\n```')
 
 
 async def _confirm_guess(message):
@@ -351,7 +351,7 @@ async def guess(message):
 		_guess = utils.remove_formatting(' '.join(content.split()[1:]))
 		game.status['guess_queue'][message.author] = _guess
 		await game.send(
-			f'**New guess:** `{_guess}`\n'
+			f'**New guess:** `{_guess or " "}`\n'
 			f'{game.defender.mention} Use _{game.prefix}<correct|incorrect> [user]_ to confirm or '
 			f'deny it.\nIf multiple guesses are active, mention the guesser in your command.'
 		)
