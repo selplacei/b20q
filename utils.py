@@ -18,7 +18,7 @@ def remove_formatting(text):
 	)
 	re_special_code_block = r'```\w+$'
 
-	text = re.sub(re_special_code_block, '', text)
+	text = re.sub(re_special_code_block, '', text, flags=re.M)
 	for regex, char in re_strip:
 		for match in re.finditer(regex, text):
 			text = text.replace(match.group(), match.group().strip(char))

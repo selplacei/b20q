@@ -33,6 +33,11 @@ async def execute_command(message):
 		'guess': guess,
 		'unguess': unguess,
 
+		'mod': mod,
+		'unmod': unmod,
+		'ismod': is_mod,
+		'is mod': is_mod,
+		'am i mod': is_mod,
 		'sample': sample,
 		'id': id_,
 		'save': save,
@@ -360,6 +365,39 @@ async def unguess(message):
 		await message.add_reaction('✅')
 	else:
 		await message.add_reaction('❌')
+
+
+@mod_only
+async def mod(message):
+	if not message.mentions:
+		await game.send(f'Format: {game.prefix}mod <user mention>')
+	elif game.is_moderator(message.mentions[0], message.guild):
+		await game.send('This user is already a moderator on this server.')
+	else:
+		game.add_moderator(message.mentions[0], message.guild)
+		await message.add_reaction('✅')
+
+
+@mod_only
+async def unmod(message):
+	if not message.mentions:
+		await game.send(f'Format: {game.prefix}mod <user mention>')
+	elif not game.is_moderator(message.mentions[0], message.guild):
+		await game.send('This user is not a moderator on this server.')
+	else:
+		game.remove_moderator(message.mentions[0], message.guild)
+		await message.add_reaction('✅')
+
+
+async def is_mod(message):
+	user = message.author
+	if message.mentions:
+		user = message.mentions[0]
+	await game.send(
+		f'`{user.display_name}` __is'
+		f'{"__" if game.is_moderator(user, message.guild) else " not__"} '
+		f'a moderator in `{message.guild.name}`.'
+	)
 
 
 @mod_only

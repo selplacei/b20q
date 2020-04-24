@@ -7,5 +7,7 @@ _%prefix%start_
     need confirmation from the winner (who will use _%prefix%confirm_ or _%prefix%deny_).
 _%prefix%show_
 	Show the current game status.
+_%prefix%ismod [user]_
+	Check if you, or _user_ if specified, are a moderator in this guild.
 _%prefix%help [page]_
 	List available commands.

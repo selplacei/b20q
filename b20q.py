@@ -254,7 +254,6 @@ class b20qGame:
 
 	def end(self):
 		self.status['defender'] = None
-		self.start_open_to_all = (self.winner is None)
 
 
 class Client20q(discord.Client):
