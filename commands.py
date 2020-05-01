@@ -17,6 +17,7 @@ async def execute_command(message):
 	COMMANDS = {
 		'start': start,
 		'show': show,
+		'status': status, 'brief': status,
 		'help': help_,
 		'open': open_,
 		'confirm': confirm,
@@ -35,14 +36,11 @@ async def execute_command(message):
 
 		'mod': mod,
 		'unmod': unmod,
-		'ismod': is_mod,
-		'is mod': is_mod,
-		'am i mod': is_mod,
+		'ismod': is_mod, 'is mod': is_mod, 'am i mod': is_mod,
 		'sample': sample,
 		'id': id_,
 		'save': save,
-		'shutdown': shutdown,
-		'off': shutdown,
+		'shutdown': shutdown, 'off': shutdown,
 		'update': update
 	}
 	content = message.content.lstrip(game.prefix)
@@ -155,6 +153,18 @@ async def start(message):
 
 async def show(message):
 	await status_format.send(
+		game.defender,
+		game.status['answers'],
+		game.max_questions,
+		game.status['hints'],
+		game.status['guesses'],
+		game.status['guess_queue'].items(),
+		game.max_guesses
+	)
+
+
+async def status(message):
+	await status_format.send_brief(
 		game.defender,
 		game.status['answers'],
 		game.max_questions,
