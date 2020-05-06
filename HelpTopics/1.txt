@@ -5,8 +5,13 @@ _%prefix%start_
     or any user if the winner opened the game by typing _%prefix%open_.
     Otherwise, anyone can request the spot by issuing this command, but they will
     need confirmation from the winner (who will use _%prefix%confirm_ or _%prefix%deny_).
+_%prefix%open_
+    If you won the previous game, allow anyone to start the next one (by default,
+    you have the priority).
 _%prefix%show_
 	Show the current game status.
+_%prefix%s[tatus]_
+    Show the short version of %prefix%show.
 _%prefix%ismod [user]_
 	Check if you, or _user_ if specified, are a moderator in this guild.
 _%prefix%help [page]_
