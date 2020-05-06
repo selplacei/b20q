@@ -5,6 +5,7 @@ from discord import User
 
 import b20q
 import commands
+import utils
 
 # If a message exceeds Discord's length limit, it will be split into chunks that satisfy the limit.
 # If breakpoints exist, b20q will try to split the message at those breakpoints.
@@ -21,9 +22,9 @@ def breakpoint(end_l='', start_r=''):
 
 def _get_name(user):
 	try:
-		return commands.game.channel.guild.get_member(user.id).display_name
+		return utils.remove_formatting(commands.game.channel.guild.get_member(user.id).display_name)
 	except AttributeError:
-		return user.display_name
+		return utils.remove_formatting(user.display_name)
 
 
 def apply(
