@@ -264,7 +264,7 @@ async def hint(message):
 @active_only
 @defender_only
 async def answer(message):
-	content = message.content.split('\n')[0].lstrip(game.prefix).lstrip('answer').strip()
+	content = message.content.split('\n')[0].lstrip(game.prefix).replace('answer', '', 1).strip()
 	if len(content.split()) < 2 or content.split()[0] not in ('yes', 'no'):
 		await game.send(f'{message.author.mention} Format: {game.prefix}[answer] <yes|no> <answer>')
 	elif game.answers_left == 0:
