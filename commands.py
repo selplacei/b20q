@@ -17,7 +17,7 @@ async def execute_command(message):
 	COMMANDS = {
 		'start': start,
 		'show': show,
-		'status': status, 'brief': status,
+		'status': status, 's': status,
 		'help': help_,
 		'open': open_,
 		'confirm': confirm,
@@ -27,6 +27,8 @@ async def execute_command(message):
 		'delete': delete,
 		'hint': hint,
 		'answer': answer,
+		'yes': answer,
+		'no': answer,
 		'incorrect': incorrect,
 		'correct': correct,
 		'end': end,
@@ -262,14 +264,14 @@ async def hint(message):
 @active_only
 @defender_only
 async def answer(message):
-	content = message.content.split('\n')[0].lstrip(game.prefix)
-	if len(content.split()) < 3 or content.split()[1] not in ('yes', 'no'):
-		await game.send(f'{message.author.mention} Format: {game.prefix}answer <yes|no> <answer>')
+	content = message.content.split('\n')[0].lstrip(game.prefix).lstrip('answer').strip()
+	if len(content.split()) < 2 or content.split()[0] not in ('yes', 'no'):
+		await game.send(f'{message.author.mention} Format: {game.prefix}[answer] <yes|no> <answer>')
 	elif game.answers_left == 0:
 		await game.send('There are no questions left.')
 	else:
-		_answer = utils.remove_formatting(' '.join(content.split()[2:]))
-		_correct = content.split()[1] == 'yes'
+		_answer = utils.remove_formatting(' '.join(content.split()[1:]))
+		_correct = content.split()[0] == 'yes'
 		game.add_answer(_correct, _answer)
 		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer or " "}\n```')
 
