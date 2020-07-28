@@ -4,6 +4,7 @@ import asyncio
 import configparser
 import json
 from collections import OrderedDict
+from datetime import datetime
 from typing import Awaitable, Optional
 
 import discord
@@ -254,6 +255,12 @@ class b20qGame:
 
 	def end(self):
 		self.status['defender'] = None
+
+	def save(self, filename=None, overwrite=True):
+		with open(filename or (
+			'status.json' if overwrite else f'status-{datetime.now().strftime("%Y%m%d-%H%M")}.json'
+		), 'w') as f:
+			f.write(self.status_as_json())
 
 
 class Client20q(discord.Client):

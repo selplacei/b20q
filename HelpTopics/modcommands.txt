@@ -1,7 +1,7 @@
 **Mod Commands**
 (defender commands are always available)
 %prefix%sample
-%prefix%save [filename]  // 'stdout' for normal stdout, 'here' to send as a message
+%prefix%save [filename]  // 'stdout' for normal stdout, 'here' to send as a message, 'backup' to generate a filename
 %prefix%shutdown
 %prefix%update
 %prefix%mod <user>

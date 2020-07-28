@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import sys
 import os
+import functools
 import subprocess
 import threading
 import time
@@ -52,6 +53,23 @@ async def execute_command(message):
 			break
 	else:
 		await game.send(f'{message.author.mention} Unknown command "{content.split()[0]}".')
+
+
+def save_before_execute(co):
+	@functools.wraps(co)
+	async def wrapper(*args, **kwargs):
+		game.save()
+		await co(*args, **kwargs)
+	return wrapper
+
+
+def save_on_success(co):
+	"""If the command was successful, it should return True. False or None will be ignored."""
+	@functools.wraps(co)
+	async def wrapper(*args, **kwargs):
+		if await co(*args, **kwargs):
+			game.save()
+	return wrapper
 
 
 def active_only(fn):
@@ -125,6 +143,7 @@ async def open_(message):
 	)
 
 
+@save_on_success
 async def start(message):
 	if game.active:
 		await game.send(
@@ -132,10 +151,10 @@ async def start(message):
 			f'Hint: the current defender can use `{game.prefix}end` to end the game prematurely.\n'
 			f'Alternatively, a moderator can use `{game.prefix}force end` to end the current game.'
 		)
-		return
-	if game.start_open_to_all or message.author == game.winner:
+	elif game.start_open_to_all or message.author == game.winner:
 		# The game is not active, and the caller isn't interfering with the previous winner's priority.
 		await game.start(message.author)
+		return True
 	else:
 		try:
 			await game.ask_for_confirmation(game.winner, game.start(message.author), None)
@@ -203,64 +222,77 @@ async def help_(message):
 
 @active_only
 @defender_only
+@save_on_success
 async def edit(message):
 	args = [game.prefix] + message.content.lstrip(game.prefix).split('\n')[0].split()
 	if (len(args) < 5) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
 		await game.send(f'{message.author.mention} Format: `{game.prefix}edit <answer|hint> <index> <result>`')
-		return
+		return False
 	index = int(args[3]) - 1
 	result = utils.remove_formatting(' '.join(args[4:]))
 	if args[2] == 'answer' and (result.startswith('yes ') or result.startswith('no ')):
+		# Editing the yes/no attribute first. Exit if the actual answer wasn't edited.
 		try:
 			game.status['answers'][index] = (result.startswith('yes '), game.status['answers'][index][1])
 			await message.add_reaction('✅')
 		except IndexError:
 			await message.add_reaction('❌')
+			return False
 		result = ' '.join(result.split()[1:])
 		if not result:
-			return
+			return True
 	if args[2] == 'answer':
 		try:
 			game.status['answers'][index] = (game.status['answers'][index][0], result)
 			await message.add_reaction('✅')
+			return True
 		except IndexError:
 			await message.add_reaction('❌')
+			return False
 	elif args[2] == 'hint':
 		try:
 			game.status['hints'][index] = result
 			await message.add_reaction('✅')
+			return True
 		except IndexError:
 			await message.add_reaction('❌')
+			return False
 
 
 @active_only
 @defender_only
+@save_on_success
 async def delete(message):
 	args = [game.prefix] + message.content.lstrip(game.prefix).split()
 	if (len(args) < 4) or (args[2] not in ('answer', 'hint')) or (not args[3].isdigit()):
 		await game.send(f'{message.author.mention} Format: `{game.prefix}delete <answer|hint> <index>`')
-		return
+		return False
 	part = args[2]
 	index = int(args[3]) - 1
 	try:
 		del game.status[part + 's'][index]
 		await message.add_reaction('✅')
+		return True
 	except IndexError:
 		await message.add_reaction('❌')
+		return False
 
 
 @active_only
 @defender_only
+@save_on_success
 async def hint(message):
 	content = message.content.split('\n')[0].lstrip(game.prefix)
 	if len(content.split()) > 1:
 		_hint = utils.remove_formatting(' '.join(content.split()[1:]))
 		game.status['hints'].append(_hint)
 		await game.send(f'**New hint:**\n`{_hint or " "}`')
+		return True
 
 
 @active_only
 @defender_only
+@save_on_success
 async def answer(message):
 	content = message.content.split('\n')[0].lstrip(game.prefix).replace('answer', '', 1).strip()
 	if len(content.split()) < 2 or content.split()[0] not in ('yes', 'no'):
@@ -272,6 +304,7 @@ async def answer(message):
 		_correct = content.split()[0] == 'yes'
 		game.add_answer(_correct, _answer)
 		await game.send(f'**New answer:**```diff\n{"+" if _correct else "-"} {_answer or " "}\n```')
+		return True
 
 
 async def _confirm_guess(message):
@@ -304,10 +337,11 @@ async def _confirm_guess(message):
 
 @active_only
 @defender_only
+@save_on_success
 async def correct(message):
 	user = await _confirm_guess(message)
 	if user is None:
-		return
+		return False
 	game.add_guess(True, user, game.status['guess_queue'][user])
 	game.winner = user
 	await game.send(
@@ -320,21 +354,25 @@ async def correct(message):
 	)
 	game.status['guess_queue'] = OrderedDict()
 	game.end()
+	return True
 
 
 @active_only
 @defender_only
+@save_on_success
 async def incorrect(message):
 	user = await _confirm_guess(message)
 	if user is None:
-		return
+		return False
 	game.add_guess(False, user, game.status['guess_queue'][user])
 	await game.send(f'**Incorrect guess:** `{game.status["guess_queue"][user]}`')
 	del game.status['guess_queue'][user]
+	return True
 
 
 @active_only
 @defender_only
+@save_on_success
 async def end(message):
 	await game.send(
 		f'**The 20 Questions game has been ended by the defender,** {message.author.mention}. '
@@ -342,10 +380,12 @@ async def end(message):
 		f'`{game.prefix}start` to start a new game as the defender.'
 	)
 	game.end()
+	return True
 
 
 @active_only
 @attacker_only
+@save_on_success
 async def guess(message):
 	content = message.content.split('\n')[0].lstrip(game.prefix)
 	if len(content.split()) < 2:
@@ -365,16 +405,20 @@ async def guess(message):
 			f'{game.defender.mention} Use _{game.prefix}<correct|incorrect> [user]_ to confirm or '
 			f'deny it.\nIf multiple guesses are active, mention the guesser in your command.'
 		)
+		return True
 
 
 @active_only
 @attacker_only
+@save_on_success
 async def unguess(message):
 	if message.author in game.status['guess_queue']:
 		del game.status['guess_queue'][message.author]
 		await message.add_reaction('✅')
+		return True
 	else:
 		await message.add_reaction('❌')
+		return False
 
 
 @mod_only
@@ -441,13 +485,15 @@ async def save(message):
 		sys.stdout.write(game.status_as_json())
 	elif filename == 'here':
 		await game.send(game.status_as_json())
+	elif filename == 'backup':
+		game.save(overwrite=False)
 	else:
-		with open(filename, 'w') as file:
-			file.write(game.status_as_json())
+		game.save()
 	await message.add_reaction('✅')
 
 
 @mod_only
+@save_before_execute
 async def shutdown(message):
 	await message.add_reaction('✅')
 	await game.client.close()
@@ -455,9 +501,8 @@ async def shutdown(message):
 
 
 @mod_only
+@save_before_execute
 async def update(message):
-	with open('status_pre-update.json', 'w') as file:
-		file.write(game.status_as_json())
 	await message.add_reaction('✅')
 
 	def _update():
