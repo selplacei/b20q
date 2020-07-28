@@ -505,6 +505,7 @@ async def shutdown(message):
 async def update(message):
 	await message.add_reaction('💤')
 	updm = f'{message.channel.id}:{message.id}'
+	subprocess.run('./update.sh', capture_output=True)
 	if os.path.exists('./launch.sh'):
 		os.execle('/bin/sh', '/bin/sh', './launch.sh', {**os.environ, 'B20Q_UPDATE_MESSAGE': updm})
 	else:
