@@ -3,6 +3,7 @@ import sys
 import asyncio
 import configparser
 import json
+import os
 from collections import OrderedDict
 from datetime import datetime
 from typing import Awaitable, Optional
@@ -45,9 +46,7 @@ class b20qGame:
 		return self
 
 	def __exit__(self, type, value, traceback):
-		# Save the game status to the JSON file
-		with open('status.json', 'w') as status:
-			status.write(self.status_as_json())
+		self.save()
 
 	async def ask_for_confirmation(self, user, success_callback: Optional[Awaitable], fail_callback: Optional[Awaitable]):
 		# Raises ValueError if the user is already in the confirmation queue.
@@ -80,14 +79,17 @@ class b20qGame:
 
 	def status_as_json(self):
 		_status = self.status.copy()
-		_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}
+		try:
+			_status['guess_queue'] = {u.id: g for u, g in _status['guess_queue'].items()}
+		except KeyError:
+			pass
 		return json.dumps(_status, cls=_DiscordUserSerializer)
 
 	async def initialize_status(self):
 		try:
 			self.load_status()
 		except (json.JSONDecodeError, KeyError, ValueError) as e:
-			sys.stderr.write(str(e))
+			sys.stderr.write(repr(e))
 			sys.stderr.write('\nError while loading status from JSON. The status has been reset.\n')
 			self.reset_status()
 		self.initialized = True
@@ -264,13 +266,29 @@ class b20qGame:
 
 
 class Client20q(discord.Client):
-	async def on_message(self, message):
+	async def on_ready(self):
+		if 'B20Q_UPDATE_MESSAGE' in os.environ:
+			try:
+				channel, id = map(int, os.environ['B20Q_UPDATE_MESSAGE'].split(':'))
+				message = await self.get_channel(channel).fetch_message(id)
+				try:
+					await message.remove_reaction('💤', self.user)
+				except discord.NotFound:
+					pass
+				await message.add_reaction('✅')
+			except Exception as e:
+				sys.stderr.write(f'Error when reading B20Q_UPDATE_MESSAGE: {os.environ["B20Q_UPDATE_MESSAGE"]}\n{e}\n')
 		if not game.initialized:
 			try:
 				await asyncio.wait_for(game.initialize_status(), 20.0)
 			except asyncio.TimeoutError:
-				sys.stderr.write('Timed out while loading status from JSON.')
-				game.reset_status(write_json=False)
+				sys.stderr.write('Timed out while loading status from JSON. WTF?')
+				game.reset_status()
+
+	async def on_message(self, message):
+		if not game.initialized:
+			await message.channel.send('Still initializing. Wait up to 20 seconds and try again.')
+			return
 		if message.author != self.user and message.content.startswith(game.prefix):
 			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
 			game.channel = message.channel
@@ -282,4 +300,4 @@ if __name__ == '__main__':
 		with open('token') as token:
 			_token = token.read().strip()
 		commands.game = game
-		game.client.run(_token)
+		asyncio.get_event_loop().run_until_complete(game.client.start(_token))

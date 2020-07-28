@@ -503,16 +503,9 @@ async def shutdown(message):
 @mod_only
 @save_before_execute
 async def update(message):
-	await message.add_reaction('✅')
-
-	def _update():
-		time.sleep(2)
-		subprocess.call('./update.sh')
-		if os.path.exists('./launch.sh'):
-			print('executing launch.sh')
-			os.execl('/bin/sh', '/bin/sh', './launch.sh')
-		else:
-			os.execl('./venv/bin/python', './venv/bin/python', './b20q.py')
-
-	threading.Thread(target=_update).start()
-	await game.client.close()
+	await message.add_reaction('💤')
+	updm = f'{message.channel.id}:{message.id}'
+	if os.path.exists('./launch.sh'):
+		os.execle('/bin/sh', '/bin/sh', './launch.sh', {**os.environ, 'B20Q_UPDATE_MESSAGE': updm})
+	else:
+		os.execle('./venv/bin/python', './venv/bin/python', './b20q.py', {**os.environ, 'B20Q_UPDATE_MESSAGE': updm})
