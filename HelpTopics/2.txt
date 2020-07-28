@@ -1,17 +1,17 @@
 `Page 2 of 3:`
 **Defender Commands**
 Note: for _edit_, _hint_, _answer_, and _guess_, only the first line of the message will be looked at.
-_%prefix%edit <answer|hint> <index> <result>_
+_%prefix%e[dit] <answer|hint> <index> <result>_
 	Edit an answer or hint. If editing an answer, _result_ can start with _yes_ or _no_ to edit that.
-_%prefix%delete <answer|hint> <index>_
+_%prefix%d[elete] <answer|hint> <index>_
 	Delete an answer or hint.
-_%prefix%hint <hint>_
+_%prefix%h[int] <hint>_
 	Add a hint.
 _%prefix%[answer] <yes|no> <answer>_
 	Add an answer.
-_%prefix%incorrect [user]_
+_%prefix%i[ncorrect] [user]_
 	In response to _%prefix%guess_ by _user_, add their guess as false. If only one guess is active, _user_ is optional.
-_%prefix%correct [user]_
+_%prefix%c[orrect] [user]_
 	In response to _%prefix%guess_ by _user_, confirm their guess as true and end the game. If only one guess is active, _user_ is optional.
 _%prefix%end_
 	End the game prematurely with no winner.

@@ -1,16 +1,9 @@
 **Mod Commands**
-%prefix%force start [user]
-%prefix%force end [winner]
-%prefix%defender <user>
+(defender commands are always available)
 %prefix%sample
-%prefix%save [filename]  // 'stdout' for normal stdout, 'here' to send to the Discord channel
-%prefix%load
+%prefix%save [filename]  // 'stdout' for normal stdout, 'here' to send as a message
 %prefix%shutdown
 %prefix%update
 %prefix%mod <user>
 %prefix%unmod <user>
-
-(all defender commands)
-
-%prefix%config <prefix|maxQuestions|maxGuesses|allowHints> <set|read> [value]
 %prefix%id [guild|(user mention)]

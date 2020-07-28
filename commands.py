@@ -16,25 +16,23 @@ game: b20q.b20qGame
 async def execute_command(message):
 	COMMANDS = {
 		'start': start,
-		'show': show,
+		'show': show, 'sh': show,
 		'status': status, 's': status,
 		'help': help_,
 		'open': open_,
 		'confirm': confirm,
 		'deny': deny,
 
-		'edit': edit,
-		'delete': delete,
-		'hint': hint,
-		'answer': answer,
-		'yes': answer,
-		'no': answer,
-		'incorrect': incorrect,
-		'correct': correct,
+		'edit': edit, 'e': edit,
+		'delete': delete, 'd': delete,
+		'hint': hint, 'h': hint,
+		'answer': answer, 'yes': answer, 'no': answer,
+		'incorrect': incorrect, 'i': incorrect,
+		'correct': correct, 'c': correct,
 		'end': end,
 
-		'guess': guess,
-		'unguess': unguess,
+		'guess': guess, 'g': guess,
+		'unguess': unguess, 'ung': unguess,
 
 		'mod': mod,
 		'unmod': unmod,
@@ -45,11 +43,11 @@ async def execute_command(message):
 		'shutdown': shutdown, 'off': shutdown,
 		'update': update
 	}
-	content = message.content.lstrip(game.prefix)
+	content = message.content[len(game.prefix)-1:]
 	if len(content) == 0:
 		return
 	for command, fn in COMMANDS.items():
-		if message.content.startswith(f'{game.prefix}{command}'):
+		if content.split()[0] == command:
 			await fn(message)
 			break
 	else:

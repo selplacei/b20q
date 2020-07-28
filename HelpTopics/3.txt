@@ -1,7 +1,7 @@
 `Page 3 of 3:`
 **Attacker Commands**
-%prefix%guess <guess>
+%prefix%g[uess] <guess>
 	Make a guess. The defender has to use _%prefix%<correct|incorrect>_ to add it to the game's status.
 	*Note:* only the first line of the message will be looked at.
-%prefix%unguess
+%prefix%ung[uess]
 	Retract your current guess (can't be used after _%prefix%<correct|incorrect>_ by the defender).
