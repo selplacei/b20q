@@ -157,6 +157,4 @@ def collapse_breakpoints(split_list, max_length):
 			fragments.append(start_r + part_r)
 		else:
 			fragments[-1] += part_r
-	if len(uncollapsed) == 2:
-		fragments.append(uncollapsed.pop())
 	return fragments
