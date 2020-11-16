@@ -286,13 +286,13 @@ class Client20q(discord.Client):
 				game.reset_status()
 
 	async def on_message(self, message):
-		if not game.initialized:
-			await message.channel.send('Still initializing. Wait up to 20 seconds and try again.')
-			return
-		if message.author != self.user and message.content.startswith(game.prefix):
-			print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
-			game.channel = message.channel
-			await commands.execute_command(message)
+		if message.author != self.user:
+			if not game.initialized:
+				await message.channel.send('Still initializing. Wait up to 20 seconds and try again.')
+			elif message.content.startswith(game.prefix):
+				print(f'[{message.guild}] {{{message.author}}} > #{message.channel}: {message.content}')
+				game.channel = message.channel
+				await commands.execute_command(message)
 
 
 if __name__ == '__main__':
