@@ -101,20 +101,20 @@ class b20qGame:
 		self.status = self.default_status()
 		self.status.update(_status)
 		if self.status['defender'] is not None:
-			self.status['defender'] = self.client.get_user(_status['defender'])
+			self.status['defender'] = self.client.fetch_user(_status['defender'])
 			if self.status['defender'] is None:
 				sys.stderr.write('Couldn\'t find the defender user from the saved ID. Resetting game status.\n')
 				self.reset_status()
 				return
 		if self.status['winner'] is not None:
-			self.status['winner'] = self.client.get_user(_status['winner'])
+			self.status['winner'] = self.client.fetch_user(_status['winner'])
 			if self.status['winner'] is None:
 				sys.stderr.write('Couldn\'t find the winner from the saved ID. Resetting game status.\n')
 				self.reset_status()
 				return
 		self.status['guesses'] = []
 		for c, i, g in _status['guesses']:
-			guesser = self.client.get_user(i)
+			guesser = self.client.fetch_user(i)
 			if guesser is None:
 				sys.stderr.write(f'Couldn\'t load guess from user ID {i}. Resetting game status.\n')
 				self.reset_status()
@@ -123,7 +123,7 @@ class b20qGame:
 		self.status['guess_queue'] = OrderedDict()
 		for i, g in _status['guess_queue'].items():
 			i = int(i)
-			guesser = self.client.get_user(i)
+			guesser = self.client.fetch_user(i)
 			if guesser is None:
 				sys.stderr.write(f'Couldn\'t load queued guess from user ID {i}. Removing the guess.\n')
 			else:
