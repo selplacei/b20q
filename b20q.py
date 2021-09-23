@@ -87,34 +87,34 @@ class b20qGame:
 
 	async def initialize_status(self):
 		try:
-			self.load_status()
+			await self.load_status()
 		except (json.JSONDecodeError, KeyError, ValueError) as e:
 			sys.stderr.write(repr(e))
 			sys.stderr.write('\nError while loading status from JSON. The status has been reset.\n')
 			self.reset_status()
 		self.initialized = True
 
-	def load_status(self):
+	async def load_status(self):
 		with open('status.json') as s:
 			_status = json.load(s)
 		# Convert all user IDs into user objects. If an ID is not found (except in queued guesses), reset the status.
 		self.status = self.default_status()
 		self.status.update(_status)
 		if self.status['defender'] is not None:
-			self.status['defender'] = self.client.fetch_user(_status['defender'])
+			self.status['defender'] = await self.client.fetch_user(_status['defender'])
 			if self.status['defender'] is None:
 				sys.stderr.write('Couldn\'t find the defender user from the saved ID. Resetting game status.\n')
 				self.reset_status()
 				return
 		if self.status['winner'] is not None:
-			self.status['winner'] = self.client.fetch_user(_status['winner'])
+			self.status['winner'] = await self.client.fetch_user(_status['winner'])
 			if self.status['winner'] is None:
 				sys.stderr.write('Couldn\'t find the winner from the saved ID. Resetting game status.\n')
 				self.reset_status()
 				return
 		self.status['guesses'] = []
 		for c, i, g in _status['guesses']:
-			guesser = self.client.fetch_user(i)
+			guesser = await self.client.fetch_user(i)
 			if guesser is None:
 				sys.stderr.write(f'Couldn\'t load guess from user ID {i}. Resetting game status.\n')
 				self.reset_status()
@@ -123,7 +123,7 @@ class b20qGame:
 		self.status['guess_queue'] = OrderedDict()
 		for i, g in _status['guess_queue'].items():
 			i = int(i)
-			guesser = self.client.fetch_user(i)
+			guesser = await self.client.fetch_user(i)
 			if guesser is None:
 				sys.stderr.write(f'Couldn\'t load queued guess from user ID {i}. Removing the guess.\n')
 			else:
